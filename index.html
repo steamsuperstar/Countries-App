@@ -182,7 +182,11 @@ numeric,subregion_code,subregion_name
           );
 
           // Merge the Northern Europe countries into one sub-region geometry.
-          const northernEuropeGeometry = topojson.merge(topology, northernEuropeCountries);
+          // topojson.merge expects TopoJSON geometries, not GeoJSON features.
+          const northernEuropeGeometries = topology.objects.countries.geometries.filter(
+            (geometry) => northernEuropeCodes.has(String(geometry.id))
+          );
+          const northernEuropeGeometry = topojson.merge(topology, northernEuropeGeometries);
 
           // -----------------------------
           // 4) Draw layers
