@@ -293,6 +293,8 @@ numeric,subregion_code,subregion_name
               clearSelections();
               d3.select(this).classed("is-selected", true);
               subregionGroup.classed("is-hidden", false);
+              subregionGroup.raise();
+              regionGroup.lower();
               subregionCountriesGroup.classed("is-hidden", true);
               updateSelectionLabel("Europe (region)");
             });
