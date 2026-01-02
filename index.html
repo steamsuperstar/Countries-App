@@ -94,9 +94,9 @@
       <strong>Equal Earth</strong> projection. Click a country to highlight it and see its name.
     </p>
     <p>
-      We also group European <em>sub-regions</em> (Northern, Southern, Eastern, and Western
-      Europe) into single shapes. Click a sub-region to reveal its countries, then click those
-      countries individually.
+      We also group Europe into a top-level <em>region</em>. Click Europe to reveal the European
+      sub-regions (Northern, Southern, Eastern, Western), then click a sub-region to reveal its
+      countries.
     </p>
 
     <div class="map-card">
@@ -225,6 +225,9 @@ numeric,subregion_code,subregion_name
             countryCodes.map((row) => normalizeNumeric(row.numeric))
           );
 
+          // Europe region is defined by all sub-regions in the CSV.
+          const europeCodes = new Set(allSubregionCodes);
+
           const otherCountries = countries.filter(
             (feature) => !allSubregionCodes.has(normalizeNumeric(feature.id))
           );
@@ -249,11 +252,20 @@ numeric,subregion_code,subregion_name
             };
           }).filter((subregion) => subregion.geometry && subregion.features.length > 0);
 
+          // Merge all European sub-regions into a single region shape.
+          const europeGeometries = topology.objects.countries.geometries.filter((geometry) =>
+            europeCodes.has(normalizeNumeric(geometry.id))
+          );
+          const europeGeometry = topojson.merge(topology, europeGeometries);
+
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
           const countriesGroup = svg.append("g").attr("class", "countries-layer");
-          const subregionGroup = svg.append("g").attr("class", "subregions-layer");
+          const regionGroup = svg.append("g").attr("class", "regions-layer");
+          const subregionGroup = svg
+            .append("g")
+            .attr("class", "subregions-layer is-hidden");
           const subregionCountriesGroup = svg
             .append("g")
             .attr("class", "subregion-countries-layer is-hidden");
@@ -271,6 +283,20 @@ numeric,subregion_code,subregion_name
               updateSelectionLabel(d.properties.name || "Unknown country");
             });
 
+          // Draw Europe region as a single combined shape.
+          regionGroup
+            .append("path")
+            .datum(europeGeometry)
+            .attr("class", "subregion")
+            .attr("d", path)
+            .on("click", function () {
+              clearSelections();
+              d3.select(this).classed("is-selected", true);
+              subregionGroup.classed("is-hidden", false);
+              subregionCountriesGroup.classed("is-hidden", true);
+              updateSelectionLabel("Europe (region)");
+            });
+
           // Draw each European sub-region as a single combined shape.
           subregionGroup
             .selectAll("path")
@@ -279,13 +305,14 @@ numeric,subregion_code,subregion_name
             .attr("class", "subregion")
             .attr("d", (d) => path(d.geometry))
             .on("click", function (event, d) {
-              clearSelections();
+              clearSelections({ keepRegion: true });
               d3.select(this).classed("is-selected", true);
               drawSubregionCountries(d);
               subregionCountriesGroup.classed("is-hidden", false);
               subregionCountriesGroup.raise();
               updateSelectionLabel(`${d.name} (sub-region)`);
             });
+          regionGroup.raise();
 
           // Draw sub-region countries (hidden until a sub-region is selected).
           function drawSubregionCountries(subregion) {
@@ -308,8 +335,12 @@ numeric,subregion_code,subregion_name
           // -----------------------------
           // 5) Helper functions
           // -----------------------------
-          function clearSelections() {
+          function clearSelections(options = {}) {
             countriesGroup.selectAll(".country").classed("is-selected", false);
+            if (!options.keepRegion) {
+              regionGroup.selectAll(".subregion").classed("is-selected", false);
+              subregionGroup.classed("is-hidden", true);
+            }
             subregionGroup.selectAll(".subregion").classed("is-selected", false);
             subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
             subregionCountriesGroup.classed("is-hidden", true);
