@@ -94,8 +94,9 @@
       <strong>Equal Earth</strong> projection. Click a country to highlight it and see its name.
     </p>
     <p>
-      We also group Northern Europe into a single <em>sub-region</em> (code 154). Click the
-      sub-region to reveal its countries, then click those countries individually.
+      We also group European <em>sub-regions</em> (Northern, Southern, Eastern, and Western
+      Europe) into single shapes. Click a sub-region to reveal its countries, then click those
+      countries individually.
     </p>
 
     <div class="map-card">
@@ -109,22 +110,57 @@
     -->
     <script id="country-codes" type="text/csv">
 numeric,subregion_code,subregion_name
-248,154,Northern Europe
+8,039,Southern Europe
+20,039,Southern Europe
+70,039,Southern Europe
+191,039,Southern Europe
+292,039,Southern Europe
+300,039,Southern Europe
+336,039,Southern Europe
+380,039,Southern Europe
+470,039,Southern Europe
+499,039,Southern Europe
+620,039,Southern Europe
+674,039,Southern Europe
+688,039,Southern Europe
+705,039,Southern Europe
+724,039,Southern Europe
+807,039,Southern Europe
+100,151,Eastern Europe
+112,151,Eastern Europe
+203,151,Eastern Europe
+348,151,Eastern Europe
+498,151,Eastern Europe
+616,151,Eastern Europe
+642,151,Eastern Europe
+643,151,Eastern Europe
+703,151,Eastern Europe
+804,151,Eastern Europe
 208,154,Northern Europe
 233,154,Northern Europe
 234,154,Northern Europe
 246,154,Northern Europe
-831,154,Northern Europe
+248,154,Northern Europe
 352,154,Northern Europe
 372,154,Northern Europe
-833,154,Northern Europe
-832,154,Northern Europe
 428,154,Northern Europe
 440,154,Northern Europe
 578,154,Northern Europe
 744,154,Northern Europe
 752,154,Northern Europe
 826,154,Northern Europe
+831,154,Northern Europe
+832,154,Northern Europe
+833,154,Northern Europe
+40,155,Western Europe
+56,155,Western Europe
+250,155,Western Europe
+276,155,Western Europe
+438,155,Western Europe
+442,155,Western Europe
+492,155,Western Europe
+528,155,Western Europe
+756,155,Western Europe
     </script>
 
     <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
@@ -155,49 +191,74 @@ numeric,subregion_code,subregion_name
 
       // Country code lookup table (CSV embedded in the HTML).
       const countryCodesCsv = d3.select("#country-codes").text().trim();
-      const countryCodes = d3.csvParse(countryCodesCsv);
 
-      d3.json(worldAtlasUrl).then((topology) => {
+      function normalizeNumeric(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? String(parsed) : String(value).trim();
+      }
+
+      async function loadCountryCodes() {
+        try {
+          const response = await fetch("country-codes.csv");
+          if (response.ok) {
+            return d3.csvParse(await response.text());
+          }
+        } catch (error) {
+          // If the file cannot be loaded (e.g., file:// protocol), fall back to inline CSV.
+        }
+        return d3.csvParse(countryCodesCsv);
+      }
+
+      Promise.all([d3.json(worldAtlasUrl), loadCountryCodes()]).then(
+        ([topology, countryCodes]) => {
           // Convert TopoJSON to GeoJSON features so D3 can draw each country.
           const countries = topojson.feature(topology, topology.objects.countries).features;
 
           // Build a lookup for ISO numeric codes -> sub-region metadata.
           const subregionByNumeric = new Map(
-            countryCodes.map((row) => [row.numeric, row])
+            countryCodes.map((row) => [normalizeNumeric(row.numeric), row])
           );
 
-          // Identify Northern Europe by sub-region code 154.
-          const northernEuropeCodes = new Set(
-            countryCodes
-              .filter((row) => row.subregion_code === "154")
-              .map((row) => row.numeric)
-          );
-
-          const northernEuropeCountries = countries.filter((feature) =>
-            northernEuropeCodes.has(String(feature.id))
+          // Group the CSV by sub-region and build quick lookup helpers.
+          const subregionGroups = d3.group(countryCodes, (row) => row.subregion_code);
+          const allSubregionCodes = new Set(
+            countryCodes.map((row) => normalizeNumeric(row.numeric))
           );
 
           const otherCountries = countries.filter(
-            (feature) => !northernEuropeCodes.has(String(feature.id))
+            (feature) => !allSubregionCodes.has(normalizeNumeric(feature.id))
           );
 
-          // Merge the Northern Europe countries into one sub-region geometry.
-          // topojson.merge expects TopoJSON geometries, not GeoJSON features.
-          const northernEuropeGeometries = topology.objects.countries.geometries.filter(
-            (geometry) => northernEuropeCodes.has(String(geometry.id))
-          );
-          const northernEuropeGeometry = topojson.merge(topology, northernEuropeGeometries);
+          // Build sub-region metadata including merged geometry and member features.
+          const subregions = Array.from(subregionGroups, ([code, rows]) => {
+            const name = rows[0]?.subregion_name || "Sub-region";
+            const codes = new Set(rows.map((row) => normalizeNumeric(row.numeric)));
+            const features = countries.filter((feature) =>
+              codes.has(normalizeNumeric(feature.id))
+            );
+            const geometries = topology.objects.countries.geometries.filter((geometry) =>
+              codes.has(normalizeNumeric(geometry.id))
+            );
+
+            return {
+              code,
+              name,
+              codes,
+              features,
+              geometry: topojson.merge(topology, geometries),
+            };
+          }).filter((subregion) => subregion.geometry && subregion.features.length > 0);
 
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
           const countriesGroup = svg.append("g").attr("class", "countries-layer");
           const subregionGroup = svg.append("g").attr("class", "subregions-layer");
-          const northernCountriesGroup = svg
+          const subregionCountriesGroup = svg
             .append("g")
-            .attr("class", "northern-countries-layer is-hidden");
+            .attr("class", "subregion-countries-layer is-hidden");
 
-          // Draw the rest of the world (non-Northern Europe countries).
+          // Draw the rest of the world (non-subregion countries).
           countriesGroup
             .selectAll("path")
             .data(otherCountries)
@@ -210,34 +271,39 @@ numeric,subregion_code,subregion_name
               updateSelectionLabel(d.properties.name || "Unknown country");
             });
 
-          // Draw the Northern Europe sub-region as a single combined shape.
+          // Draw each European sub-region as a single combined shape.
           subregionGroup
-            .append("path")
-            .datum(northernEuropeGeometry)
+            .selectAll("path")
+            .data(subregions)
+            .join("path")
             .attr("class", "subregion")
-            .attr("d", path)
-            .on("click", function () {
+            .attr("d", (d) => path(d.geometry))
+            .on("click", function (event, d) {
               clearSelections();
               d3.select(this).classed("is-selected", true);
-              northernCountriesGroup.classed("is-hidden", false);
-              updateSelectionLabel("Northern Europe (sub-region)");
+              drawSubregionCountries(d);
+              subregionCountriesGroup.classed("is-hidden", false);
+              updateSelectionLabel(`${d.name} (sub-region)`);
             });
+          subregionGroup.raise();
 
-          // Draw Northern Europe countries (hidden until sub-region is selected).
-          northernCountriesGroup
-            .selectAll("path")
-            .data(northernEuropeCountries)
-            .join("path")
-            .attr("class", "country")
-            .attr("d", path)
-            .on("click", function (event, d) {
-              // Keep the sub-region visible; only highlight the chosen country.
-              northernCountriesGroup.selectAll(".country").classed("is-selected", false);
-              d3.select(this).classed("is-selected", true);
-              const metadata = subregionByNumeric.get(String(d.id));
-              const subregionName = metadata?.subregion_name || "Northern Europe";
-              updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
-            });
+          // Draw sub-region countries (hidden until a sub-region is selected).
+          function drawSubregionCountries(subregion) {
+            subregionCountriesGroup
+              .selectAll("path")
+              .data(subregion.features)
+              .join("path")
+              .attr("class", "country")
+              .attr("d", path)
+              .on("click", function (event, d) {
+                // Keep the sub-region visible; only highlight the chosen country.
+                subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
+                d3.select(this).classed("is-selected", true);
+                const metadata = subregionByNumeric.get(normalizeNumeric(d.id));
+                const subregionName = metadata?.subregion_name || subregion.name;
+                updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
+              });
+          }
 
           // -----------------------------
           // 5) Helper functions
@@ -245,14 +311,15 @@ numeric,subregion_code,subregion_name
           function clearSelections() {
             countriesGroup.selectAll(".country").classed("is-selected", false);
             subregionGroup.selectAll(".subregion").classed("is-selected", false);
-            northernCountriesGroup.selectAll(".country").classed("is-selected", false);
-            northernCountriesGroup.classed("is-hidden", true);
+            subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
+            subregionCountriesGroup.classed("is-hidden", true);
           }
 
           function updateSelectionLabel(text) {
             d3.select("#selected-country").text(`Selected: ${text}`);
           }
-        });
+        }
+      );
     </script>
   </body>
 </html>
