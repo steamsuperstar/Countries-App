@@ -283,9 +283,9 @@ numeric,subregion_code,subregion_name
               d3.select(this).classed("is-selected", true);
               drawSubregionCountries(d);
               subregionCountriesGroup.classed("is-hidden", false);
+              subregionCountriesGroup.raise();
               updateSelectionLabel(`${d.name} (sub-region)`);
             });
-          subregionGroup.raise();
 
           // Draw sub-region countries (hidden until a sub-region is selected).
           function drawSubregionCountries(subregion) {
