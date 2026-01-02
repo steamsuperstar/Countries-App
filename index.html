@@ -103,7 +103,29 @@
       <div id="selected-country" class="selected-label">Selected: None</div>
     </div>
 
-    <!--\n+      CSV lookup for ISO3166-1-numeric -> sub-region metadata.\n+      Keeping it inline ensures the demo works even when opened directly from disk.\n+    -->\n+    <script id=\"country-codes\" type=\"text/csv\">\n+numeric,subregion_code,subregion_name\n+248,154,Northern Europe\n+208,154,Northern Europe\n+233,154,Northern Europe\n+234,154,Northern Europe\n+246,154,Northern Europe\n+831,154,Northern Europe\n+352,154,Northern Europe\n+372,154,Northern Europe\n+833,154,Northern Europe\n+832,154,Northern Europe\n+428,154,Northern Europe\n+440,154,Northern Europe\n+578,154,Northern Europe\n+744,154,Northern Europe\n+752,154,Northern Europe\n+826,154,Northern Europe\n+    </script>
+    <!--
+      CSV lookup for ISO3166-1-numeric -> sub-region metadata.
+      Keeping it inline ensures the demo works even when opened directly from disk.
+    -->
+    <script id="country-codes" type="text/csv">
+numeric,subregion_code,subregion_name
+248,154,Northern Europe
+208,154,Northern Europe
+233,154,Northern Europe
+234,154,Northern Europe
+246,154,Northern Europe
+831,154,Northern Europe
+352,154,Northern Europe
+372,154,Northern Europe
+833,154,Northern Europe
+832,154,Northern Europe
+428,154,Northern Europe
+440,154,Northern Europe
+578,154,Northern Europe
+744,154,Northern Europe
+752,154,Northern Europe
+826,154,Northern Europe
+    </script>
 
     <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
