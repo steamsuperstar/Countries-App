@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Equal Earth World Map (D3.js)</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #f7f7fb;
+        color: #1f2933;
+      }
+
+      h1 {
+        margin-bottom: 0.5rem;
+        font-size: clamp(1.5rem, 2vw + 1rem, 2.2rem);
+      }
+
+      p {
+        max-width: 760px;
+        line-height: 1.5;
+      }
+
+      .map-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        padding: 16px;
+        margin-top: 20px;
+      }
+
+      svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .country {
+        fill: #c9d6f2;
+        stroke: #52637a;
+        stroke-width: 0.4;
+        cursor: pointer;
+        transition: fill 150ms ease-in-out;
+      }
+
+      .country:hover {
+        fill: #8fb0ff;
+      }
+
+      .country.is-selected {
+        fill: #f97316;
+      }
+
+      .subregion {
+        fill: #cde8f9;
+        stroke: #285a84;
+        stroke-width: 0.6;
+        cursor: pointer;
+        transition: fill 150ms ease-in-out;
+      }
+
+      .subregion:hover {
+        fill: #7fc4f0;
+      }
+
+      .subregion.is-selected {
+        fill: #0ea5e9;
+      }
+
+      .is-hidden {
+        display: none;
+      }
+
+      .selected-label {
+        font-weight: 600;
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #eef2ff;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Equal Earth Projection: Interactive Countries Map</h1>
+    <p>
+      This beginner-friendly demo loads Natural Earth country boundaries using
+      <strong>d3@7</strong> and <strong>topojson-client</strong>, then renders them with the
+      <strong>Equal Earth</strong> projection. Click a country to highlight it and see its name.
+    </p>
+    <p>
+      We also group Northern Europe into a single <em>sub-region</em> (code 154). Click the
+      sub-region to reveal its countries, then click those countries individually.
+    </p>
+
+    <div class="map-card">
+      <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
+      <div id="selected-country" class="selected-label">Selected: None</div>
+    </div>
+
+    <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+    <script>
+      // -----------------------------
+      // 1) Basic SVG setup
+      // -----------------------------
+      const svg = d3.select("#world-map");
+      const width = 960;
+      const height = 520;
+
+      // -----------------------------
+      // 2) Projection + path generator
+      // -----------------------------
+      // Equal Earth is a good choice for thematic maps because it preserves
+      // area well while keeping continents visually familiar.
+      const projection = d3.geoEqualEarth().fitSize([width, height], { type: "Sphere" });
+      const path = d3.geoPath(projection);
+
+      // -----------------------------
+      // 3) Data loading
+      // -----------------------------
+      // Natural Earth country geometries come from world-atlas (TopoJSON).
+      const worldAtlasUrl =
+        "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
+
+      // Country code lookup table (CSV in this repo).
+      const countryCodesUrl = "country-codes.csv";
+
+      Promise.all([d3.json(worldAtlasUrl), d3.csv(countryCodesUrl)]).then(
+        ([topology, countryCodes]) => {
+          // Convert TopoJSON to GeoJSON features so D3 can draw each country.
+          const countries = topojson.feature(topology, topology.objects.countries).features;
+
+          // Build a lookup for ISO numeric codes -> sub-region metadata.
+          const subregionByNumeric = new Map(
+            countryCodes.map((row) => [row.numeric, row])
+          );
+
+          // Identify Northern Europe by sub-region code 154.
+          const northernEuropeCodes = new Set(
+            countryCodes
+              .filter((row) => row.subregion_code === "154")
+              .map((row) => row.numeric)
+          );
+
+          const northernEuropeCountries = countries.filter((feature) =>
+            northernEuropeCodes.has(String(feature.id))
+          );
+
+          const otherCountries = countries.filter(
+            (feature) => !northernEuropeCodes.has(String(feature.id))
+          );
+
+          // Merge the Northern Europe countries into one sub-region geometry.
+          const northernEuropeGeometry = topojson.merge(topology, northernEuropeCountries);
+
+          // -----------------------------
+          // 4) Draw layers
+          // -----------------------------
+          const countriesGroup = svg.append("g").attr("class", "countries-layer");
+          const subregionGroup = svg.append("g").attr("class", "subregions-layer");
+          const northernCountriesGroup = svg
+            .append("g")
+            .attr("class", "northern-countries-layer is-hidden");
+
+          // Draw the rest of the world (non-Northern Europe countries).
+          countriesGroup
+            .selectAll("path")
+            .data(otherCountries)
+            .join("path")
+            .attr("class", "country")
+            .attr("d", path)
+            .on("click", function (event, d) {
+              clearSelections();
+              d3.select(this).classed("is-selected", true);
+              updateSelectionLabel(d.properties.name || "Unknown country");
+            });
+
+          // Draw the Northern Europe sub-region as a single combined shape.
+          subregionGroup
+            .append("path")
+            .datum(northernEuropeGeometry)
+            .attr("class", "subregion")
+            .attr("d", path)
+            .on("click", function () {
+              clearSelections();
+              d3.select(this).classed("is-selected", true);
+              northernCountriesGroup.classed("is-hidden", false);
+              updateSelectionLabel("Northern Europe (sub-region)");
+            });
+
+          // Draw Northern Europe countries (hidden until sub-region is selected).
+          northernCountriesGroup
+            .selectAll("path")
+            .data(northernEuropeCountries)
+            .join("path")
+            .attr("class", "country")
+            .attr("d", path)
+            .on("click", function (event, d) {
+              // Keep the sub-region visible; only highlight the chosen country.
+              northernCountriesGroup.selectAll(".country").classed("is-selected", false);
+              d3.select(this).classed("is-selected", true);
+              const metadata = subregionByNumeric.get(String(d.id));
+              const subregionName = metadata?.subregion_name || "Northern Europe";
+              updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
+            });
+
+          // -----------------------------
+          // 5) Helper functions
+          // -----------------------------
+          function clearSelections() {
+            countriesGroup.selectAll(".country").classed("is-selected", false);
+            subregionGroup.selectAll(".subregion").classed("is-selected", false);
+            northernCountriesGroup.selectAll(".country").classed("is-selected", false);
+            northernCountriesGroup.classed("is-hidden", true);
+          }
+
+          function updateSelectionLabel(text) {
+            d3.select("#selected-country").text(`Selected: ${text}`);
+          }
+        }
+      );
+    </script>
+  </body>
+</html>
