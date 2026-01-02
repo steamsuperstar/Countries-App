@@ -103,6 +103,8 @@
       <div id="selected-country" class="selected-label">Selected: None</div>
     </div>
 
+    <!--\n+      CSV lookup for ISO3166-1-numeric -> sub-region metadata.\n+      Keeping it inline ensures the demo works even when opened directly from disk.\n+    -->\n+    <script id=\"country-codes\" type=\"text/csv\">\n+numeric,subregion_code,subregion_name\n+248,154,Northern Europe\n+208,154,Northern Europe\n+233,154,Northern Europe\n+234,154,Northern Europe\n+246,154,Northern Europe\n+831,154,Northern Europe\n+352,154,Northern Europe\n+372,154,Northern Europe\n+833,154,Northern Europe\n+832,154,Northern Europe\n+428,154,Northern Europe\n+440,154,Northern Europe\n+578,154,Northern Europe\n+744,154,Northern Europe\n+752,154,Northern Europe\n+826,154,Northern Europe\n+    </script>
+
     <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
@@ -129,11 +131,11 @@
       const worldAtlasUrl =
         "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
-      // Country code lookup table (CSV in this repo).
-      const countryCodesUrl = "country-codes.csv";
+      // Country code lookup table (CSV embedded in the HTML).
+      const countryCodesCsv = d3.select("#country-codes").text().trim();
+      const countryCodes = d3.csvParse(countryCodesCsv);
 
-      Promise.all([d3.json(worldAtlasUrl), d3.csv(countryCodesUrl)]).then(
-        ([topology, countryCodes]) => {
+      d3.json(worldAtlasUrl).then((topology) => {
           // Convert TopoJSON to GeoJSON features so D3 can draw each country.
           const countries = topojson.feature(topology, topology.objects.countries).features;
 
@@ -224,8 +226,7 @@
           function updateSelectionLabel(text) {
             d3.select("#selected-country").text(`Selected: ${text}`);
           }
-        }
-      );
+        });
     </script>
   </body>
 </html>
