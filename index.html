@@ -304,7 +304,9 @@ numeric,region_code,region_name,subregion_code,subregion_name
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
-          const countriesGroup = svg.append("g").attr("class", "countries-layer");
+          const countriesGroup = svg
+            .append("g")
+            .attr("class", "countries-layer is-hidden");
           const regionGroup = svg.append("g").attr("class", "regions-layer");
           const subregionGroup = svg
             .append("g")
