@@ -258,6 +258,13 @@ numeric,region_code,region_name,subregion_code,subregion_name
           );
 
           // Build sub-region metadata including merged geometry and member features.
+          function safeMerge(geometries) {
+            if (!geometries.length) {
+              return null;
+            }
+            return topojson.merge(topology, geometries);
+          }
+
           const subregions = Array.from(subregionGroups, ([code, rows]) => {
             const name = rows[0]?.subregion_name || "Sub-region";
             const regionCode = rows[0]?.region_code || "";
@@ -277,7 +284,7 @@ numeric,region_code,region_name,subregion_code,subregion_name
               regionName,
               codes,
               features,
-              geometry: topojson.merge(topology, geometries),
+              geometry: safeMerge(geometries),
             };
           }).filter((subregion) => subregion.geometry && subregion.features.length > 0);
 
@@ -297,7 +304,7 @@ numeric,region_code,region_name,subregion_code,subregion_name
               name,
               codes,
               subregions: regionSubregions,
-              geometry: topojson.merge(topology, geometries),
+              geometry: safeMerge(geometries),
             };
           }).filter((region) => region.geometry && region.subregions.length > 0);
 
@@ -328,23 +335,43 @@ numeric,region_code,region_name,subregion_code,subregion_name
               updateSelectionLabel(d.properties.name || "Unknown country");
             });
 
-          // Draw each region as a single combined shape.
-          regionGroup
-            .selectAll("path")
-            .data(regions)
-            .join("path")
-            .attr("class", "region")
-            .attr("d", (d) => path(d.geometry))
-            .on("click", function (event, d) {
-              clearSelections();
-              d3.select(this).classed("is-selected", true);
-              drawSubregions(d);
-              subregionGroup.classed("is-hidden", false);
-              subregionGroup.raise();
-              regionGroup.lower();
-              subregionCountriesGroup.classed("is-hidden", true);
-              updateSelectionLabel(`${d.name} (region)`);
-            });
+          function drawRegions() {
+            const hasRegions = regions.length > 0;
+            countriesGroup.classed("is-hidden", hasRegions);
+            regionGroup.classed("is-hidden", !hasRegions);
+
+            if (!hasRegions) {
+              updateSelectionLabel("Map data unavailable (showing countries)");
+              countriesGroup
+                .selectAll("path")
+                .data(countries)
+                .join("path")
+                .attr("class", "country")
+                .attr("d", path)
+                .on("click", function (event, d) {
+                  clearSelections();
+                  d3.select(this).classed("is-selected", true);
+                  updateSelectionLabel(d.properties.name || "Unknown country");
+                });
+            }
+
+            regionGroup
+              .selectAll("path")
+              .data(regions)
+              .join("path")
+              .attr("class", "region")
+              .attr("d", (d) => path(d.geometry))
+              .on("click", function (event, d) {
+                clearSelections();
+                d3.select(this).classed("is-selected", true);
+                drawSubregions(d);
+                subregionGroup.classed("is-hidden", false);
+                subregionGroup.raise();
+                regionGroup.lower();
+                subregionCountriesGroup.classed("is-hidden", true);
+                updateSelectionLabel(`${d.name} (region)`);
+              });
+          }
 
           // Draw each sub-region for the selected region.
           function drawSubregions(region) {
@@ -402,6 +429,8 @@ numeric,region_code,region_name,subregion_code,subregion_name
           function updateSelectionLabel(text) {
             d3.select("#selected-country").text(`Selected: ${text}`);
           }
+
+          drawRegions();
         }
       );
     </script>
