@@ -699,6 +699,7 @@
                   ["Melanesia", "Vanuatu"],
                   ["Micronesia", "Micronesia (Federated States of)"],
                   ["Australia and New Zealand", "Australia"],
+                  ["Western Europe", "Luxembourg"],
                 ]);
                 const targetName = namedZoomTargets.get(d.name);
                 const targetFeature = targetName
@@ -706,10 +707,27 @@
                   : null;
                 const useDeeperZoom = d.name === "Micronesia";
                 const useShallowerZoom = d.name === "Melanesia";
+                const useWesternEuropeZoom = d.name === "Western Europe";
                 zoomToGeometry(targetFeature || d.geometry, {
                   duration: 450,
-                  padding: useShallowerZoom ? 0.95 : useDeeperZoom ? 1.35 : isDeepZoom ? 1.2 : 1.05,
-                  maxScale: useShallowerZoom ? 8 : useDeeperZoom ? 14 : isDeepZoom ? 12 : 10,
+                  padding: useWesternEuropeZoom
+                    ? 1.4
+                    : useShallowerZoom
+                      ? 0.95
+                      : useDeeperZoom
+                        ? 1.35
+                        : isDeepZoom
+                          ? 1.2
+                          : 1.05,
+                  maxScale: useWesternEuropeZoom
+                    ? 14
+                    : useShallowerZoom
+                      ? 8
+                      : useDeeperZoom
+                        ? 14
+                        : isDeepZoom
+                          ? 12
+                          : 10,
                 });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
