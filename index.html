@@ -710,7 +710,8 @@
               .attr("x", (d) => {
                 const [x, y] = path.centroid(d.geometry);
                 if (d.name === "Micronesia") {
-                  return x + 60;
+                  const estimatedCharWidth = 7.8;
+                  return x + d.name.length * estimatedCharWidth * 2;
                 }
                 return x;
               })
