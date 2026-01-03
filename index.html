@@ -311,9 +311,7 @@ numeric,region_code,region_name,subregion_code,subregion_name
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
-          const countriesGroup = svg
-            .append("g")
-            .attr("class", "countries-layer is-hidden");
+          const countriesGroup = svg.append("g").attr("class", "countries-layer");
           const regionGroup = svg.append("g").attr("class", "regions-layer");
           const subregionGroup = svg
             .append("g")
@@ -322,38 +320,24 @@ numeric,region_code,region_name,subregion_code,subregion_name
             .append("g")
             .attr("class", "subregion-countries-layer is-hidden");
 
-          // Draw the rest of the world (non-subregion countries).
-          countriesGroup
-            .selectAll("path")
-            .data(otherCountries)
-            .join("path")
-            .attr("class", "country")
-            .attr("d", path)
-            .on("click", function (event, d) {
-              clearSelections();
-              d3.select(this).classed("is-selected", true);
-              updateSelectionLabel(d.properties.name || "Unknown country");
-            });
+          function drawCountries() {
+            const baseCountries = regions.length ? otherCountries : countries;
+            countriesGroup
+              .selectAll("path")
+              .data(baseCountries)
+              .join("path")
+              .attr("class", "country")
+              .attr("d", path)
+              .on("click", function (event, d) {
+                clearSelections();
+                d3.select(this).classed("is-selected", true);
+                updateSelectionLabel(d.properties.name || "Unknown country");
+              });
+          }
 
           function drawRegions() {
             const hasRegions = regions.length > 0;
-            countriesGroup.classed("is-hidden", hasRegions);
             regionGroup.classed("is-hidden", !hasRegions);
-
-            if (!hasRegions) {
-              updateSelectionLabel("Map data unavailable (showing countries)");
-              countriesGroup
-                .selectAll("path")
-                .data(countries)
-                .join("path")
-                .attr("class", "country")
-                .attr("d", path)
-                .on("click", function (event, d) {
-                  clearSelections();
-                  d3.select(this).classed("is-selected", true);
-                  updateSelectionLabel(d.properties.name || "Unknown country");
-                });
-            }
 
             regionGroup
               .selectAll("path")
@@ -430,6 +414,7 @@ numeric,region_code,region_name,subregion_code,subregion_name
             d3.select("#selected-country").text(`Selected: ${text}`);
           }
 
+          drawCountries();
           drawRegions();
         }
       );
