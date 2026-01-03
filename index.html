@@ -691,7 +691,13 @@
                 subregionLabelsGroup.classed("is-hidden", true);
                 countryLabelsGroup.classed("is-hidden", false);
                 countryLabelsGroup.raise();
-                zoomToGeometry(d.geometry, { duration: 450, padding: 1.05, maxScale: 10 });
+                const deepZoomSubregions = new Set(["151", "21", "54"]);
+                const isDeepZoom = deepZoomSubregions.has(String(d.code));
+                zoomToGeometry(d.geometry, {
+                  duration: 450,
+                  padding: isDeepZoom ? 1.2 : 1.05,
+                  maxScale: isDeepZoom ? 12 : 10,
+                });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
 
