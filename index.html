@@ -782,23 +782,32 @@
                 updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
               });
 
+            const useLatinAmericaOffsets =
+              subregion.name === "Latin America and the Caribbean";
+
             countryLabelsGroup
               .classed("is-hidden", false)
               .selectAll("text")
               .data(subregion.features, (d) => d.id)
               .join("text")
               .attr("class", "label country-label")
-              .attr("x", (d) => {
+              .attr("x", (d, i) => {
                 const [x, y] = path.centroid(d);
                 if (d.properties.name === "France") {
                   return x + 20;
                 }
+                if (useLatinAmericaOffsets) {
+                  return x + (i % 4) * 6 - 6;
+                }
                 return x;
               })
-              .attr("y", (d) => {
+              .attr("y", (d, i) => {
                 const [x, y] = path.centroid(d);
                 if (d.properties.name === "France") {
                   return y - 24;
+                }
+                if (useLatinAmericaOffsets) {
+                  return y + Math.floor(i / 4) * 4 - 6;
                 }
                 return y;
               })
