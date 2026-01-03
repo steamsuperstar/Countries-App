@@ -213,6 +213,10 @@ numeric,region_code,region_name,subregion_code,subregion_name
         return Number.isFinite(parsed) ? String(parsed) : String(value).trim();
       }
 
+      function normalizeRegionCode(value) {
+        return String(value ?? "").trim();
+      }
+
       const countryCodesUrl =
         "https://raw.githubusercontent.com/steamsuperstar/Countries-App/main/country-codes.csv";
 
@@ -247,8 +251,14 @@ numeric,region_code,region_name,subregion_code,subregion_name
           );
 
           // Group the CSV by region/sub-region and build quick lookup helpers.
-          const subregionGroups = d3.group(countryCodes, (row) => row.subregion_code);
-          const regionGroups = d3.group(countryCodes, (row) => row.region_code);
+          const subregionGroups = d3.group(
+            countryCodes,
+            (row) => normalizeRegionCode(row.subregion_code)
+          );
+          const regionGroups = d3.group(
+            countryCodes,
+            (row) => normalizeRegionCode(row.region_code)
+          );
           const allSubregionCodes = new Set(
             countryCodes.map((row) => normalizeNumeric(row.numeric))
           );
@@ -267,7 +277,7 @@ numeric,region_code,region_name,subregion_code,subregion_name
 
           const subregions = Array.from(subregionGroups, ([code, rows]) => {
             const name = rows[0]?.subregion_name || "Sub-region";
-            const regionCode = rows[0]?.region_code || "";
+            const regionCode = normalizeRegionCode(rows[0]?.region_code);
             const regionName = rows[0]?.region_name || "Region";
             const codes = new Set(rows.map((row) => normalizeNumeric(row.numeric)));
             const features = countries.filter((feature) =>
@@ -290,23 +300,47 @@ numeric,region_code,region_name,subregion_code,subregion_name
 
           // Build region metadata including merged geometry and related subregions.
           const regions = Array.from(regionGroups, ([code, rows]) => {
+            const normalizedCode = normalizeRegionCode(code);
             const name = rows[0]?.region_name || "Region";
             const codes = new Set(rows.map((row) => normalizeNumeric(row.numeric)));
             const geometries = topology.objects.countries.geometries.filter((geometry) =>
               codes.has(normalizeNumeric(geometry.id))
             );
             const regionSubregions = subregions.filter(
-              (subregion) => String(subregion.regionCode) === String(code)
+              (subregion) => subregion.regionCode === normalizedCode
             );
 
             return {
-              code,
+              code: normalizedCode,
               name,
               codes,
               subregions: regionSubregions,
               geometry: safeMerge(geometries),
             };
           }).filter((region) => region.geometry && region.subregions.length > 0);
+
+          if (!regions.length && subregions.length) {
+            const derivedRegions = Array.from(
+              d3.group(subregions, (subregion) => subregion.regionCode),
+              ([code, regionSubregions]) => {
+                const name = regionSubregions[0]?.regionName || "Region";
+                const combinedCodes = new Set(
+                  regionSubregions.flatMap((subregion) => Array.from(subregion.codes))
+                );
+                const geometries = topology.objects.countries.geometries.filter((geometry) =>
+                  combinedCodes.has(normalizeNumeric(geometry.id))
+                );
+                return {
+                  code,
+                  name,
+                  codes: combinedCodes,
+                  subregions: regionSubregions,
+                  geometry: safeMerge(geometries),
+                };
+              }
+            ).filter((region) => region.geometry && region.subregions.length > 0);
+            regions.push(...derivedRegions);
+          }
 
           // -----------------------------
           // 4) Draw layers
