@@ -540,6 +540,10 @@ numeric,region_code,region_name,subregion_code,subregion_name
           function drawRegions() {
             const hasRegions = regions.length > 0;
             regionGroup.classed("is-hidden", !hasRegions);
+            if (hasRegions) {
+              regionGroup.raise();
+              countriesGroup.lower();
+            }
 
             regionGroup
               .selectAll("path")
