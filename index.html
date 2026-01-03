@@ -708,10 +708,13 @@
                 const useDeeperZoom = d.name === "Micronesia";
                 const useShallowerZoom = d.name === "Melanesia";
                 const useWesternEuropeZoom = d.name === "Western Europe";
+                const useNorthernAmericaZoom = d.name === "Northern America";
                 zoomToGeometry(targetFeature || d.geometry, {
                   duration: 450,
                   padding: useWesternEuropeZoom
-                    ? 1.4
+                    ? 1.25
+                    : useNorthernAmericaZoom
+                      ? 1.35
                     : useShallowerZoom
                       ? 0.95
                       : useDeeperZoom
@@ -720,7 +723,9 @@
                           ? 1.2
                           : 1.05,
                   maxScale: useWesternEuropeZoom
-                    ? 14
+                    ? 12
+                    : useNorthernAmericaZoom
+                      ? 14
                     : useShallowerZoom
                       ? 8
                       : useDeeperZoom
