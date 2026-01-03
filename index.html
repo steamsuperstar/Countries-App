@@ -576,6 +576,18 @@
             });
 
           svg.call(zoom);
+          svg.on("click", (event) => {
+            if (event.defaultPrevented) return;
+            const target = event.target;
+            const isShapeClick =
+              target.closest(".region") ||
+              target.closest(".subregion") ||
+              target.closest(".country");
+            if (!isShapeClick) {
+              clearSelections();
+              updateSelectionLabel("None");
+            }
+          });
 
           function zoomToGeometry(geometry) {
             const [[x0, y0], [x1, y1]] = path.bounds(geometry);
@@ -632,6 +644,7 @@
               .attr("class", "region")
               .attr("d", (d) => path(d.geometry))
               .on("click", function (event, d) {
+                event.stopPropagation();
                 clearSelections();
                 d3.select(this).classed("is-selected", true);
                 drawSubregions(d);
@@ -667,6 +680,7 @@
               .attr("class", "subregion")
               .attr("d", (d) => path(d.geometry))
               .on("click", function (event, d) {
+                event.stopPropagation();
                 clearSelections({ keepRegion: true, keepSubregions: true });
                 d3.select(this).classed("is-selected", true);
                 drawSubregionCountries(d);
@@ -699,6 +713,7 @@
               .attr("class", "country")
               .attr("d", path)
               .on("click", function (event, d) {
+                event.stopPropagation();
                 // Keep the sub-region visible; only highlight the chosen country.
                 subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
                 d3.select(this).classed("is-selected", true);
