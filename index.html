@@ -751,6 +751,9 @@
                 if (d.name === "Micronesia") {
                   return y - 10;
                 }
+                if (d.name === "Western Europe") {
+                  return y - 12;
+                }
                 return y;
               })
               .text((d) => d.name);
