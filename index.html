@@ -109,58 +109,58 @@
       Keeping it inline ensures the demo works even when opened directly from disk.
     -->
     <script id="country-codes" type="text/csv">
-numeric,subregion_code,subregion_name
-8,039,Southern Europe
-20,039,Southern Europe
-70,039,Southern Europe
-191,039,Southern Europe
-292,039,Southern Europe
-300,039,Southern Europe
-336,039,Southern Europe
-380,039,Southern Europe
-470,039,Southern Europe
-499,039,Southern Europe
-620,039,Southern Europe
-674,039,Southern Europe
-688,039,Southern Europe
-705,039,Southern Europe
-724,039,Southern Europe
-807,039,Southern Europe
-100,151,Eastern Europe
-112,151,Eastern Europe
-203,151,Eastern Europe
-348,151,Eastern Europe
-498,151,Eastern Europe
-616,151,Eastern Europe
-642,151,Eastern Europe
-643,151,Eastern Europe
-703,151,Eastern Europe
-804,151,Eastern Europe
-208,154,Northern Europe
-233,154,Northern Europe
-234,154,Northern Europe
-246,154,Northern Europe
-248,154,Northern Europe
-352,154,Northern Europe
-372,154,Northern Europe
-428,154,Northern Europe
-440,154,Northern Europe
-578,154,Northern Europe
-744,154,Northern Europe
-752,154,Northern Europe
-826,154,Northern Europe
-831,154,Northern Europe
-832,154,Northern Europe
-833,154,Northern Europe
-40,155,Western Europe
-56,155,Western Europe
-250,155,Western Europe
-276,155,Western Europe
-438,155,Western Europe
-442,155,Western Europe
-492,155,Western Europe
-528,155,Western Europe
-756,155,Western Europe
+numeric,subregion_code,subregion_name,region_code,region_name
+8,039,Southern Europe,150,Europe
+20,039,Southern Europe,150,Europe
+70,039,Southern Europe,150,Europe
+191,039,Southern Europe,150,Europe
+292,039,Southern Europe,150,Europe
+300,039,Southern Europe,150,Europe
+336,039,Southern Europe,150,Europe
+380,039,Southern Europe,150,Europe
+470,039,Southern Europe,150,Europe
+499,039,Southern Europe,150,Europe
+620,039,Southern Europe,150,Europe
+674,039,Southern Europe,150,Europe
+688,039,Southern Europe,150,Europe
+705,039,Southern Europe,150,Europe
+724,039,Southern Europe,150,Europe
+807,039,Southern Europe,150,Europe
+100,151,Eastern Europe,150,Europe
+112,151,Eastern Europe,150,Europe
+203,151,Eastern Europe,150,Europe
+348,151,Eastern Europe,150,Europe
+498,151,Eastern Europe,150,Europe
+616,151,Eastern Europe,150,Europe
+642,151,Eastern Europe,150,Europe
+643,151,Eastern Europe,150,Europe
+703,151,Eastern Europe,150,Europe
+804,151,Eastern Europe,150,Europe
+208,154,Northern Europe,150,Europe
+233,154,Northern Europe,150,Europe
+234,154,Northern Europe,150,Europe
+246,154,Northern Europe,150,Europe
+248,154,Northern Europe,150,Europe
+352,154,Northern Europe,150,Europe
+372,154,Northern Europe,150,Europe
+428,154,Northern Europe,150,Europe
+440,154,Northern Europe,150,Europe
+578,154,Northern Europe,150,Europe
+744,154,Northern Europe,150,Europe
+752,154,Northern Europe,150,Europe
+826,154,Northern Europe,150,Europe
+831,154,Northern Europe,150,Europe
+832,154,Northern Europe,150,Europe
+833,154,Northern Europe,150,Europe
+40,155,Western Europe,150,Europe
+56,155,Western Europe,150,Europe
+250,155,Western Europe,150,Europe
+276,155,Western Europe,150,Europe
+438,155,Western Europe,150,Europe
+442,155,Western Europe,150,Europe
+492,155,Western Europe,150,Europe
+528,155,Western Europe,150,Europe
+756,155,Western Europe,150,Europe
     </script>
 
     <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
@@ -210,7 +210,15 @@ numeric,subregion_code,subregion_name
       }
 
       Promise.all([d3.json(worldAtlasUrl), loadCountryCodes()]).then(
-        ([topology, countryCodes]) => {
+        ([topology, rawCountryCodes]) => {
+          const countryCodes = rawCountryCodes.map((row) => ({
+            ...row,
+            numeric: row.numeric ?? row["ISO3166-1-numeric"],
+            subregion_code: row.subregion_code ?? row["Sub-region Code"],
+            subregion_name: row.subregion_name ?? row["Sub-region Name"],
+            region_code: row.region_code ?? row["Region Code"],
+            region_name: row.region_name ?? row["Region Name"],
+          }));
           // Convert TopoJSON to GeoJSON features so D3 can draw each country.
           const countries = topojson.feature(topology, topology.objects.countries).features;
 
@@ -221,6 +229,20 @@ numeric,subregion_code,subregion_name
 
           // Group the CSV by sub-region and build quick lookup helpers.
           const subregionGroups = d3.group(countryCodes, (row) => row.subregion_code);
+          const regionGroups = d3.group(countryCodes, (row) => row.region_code);
+          const regionSubregions = Array.from(regionGroups, ([regionCode, rows]) => {
+            const subregionCodes = Array.from(
+              new Set(rows.map((row) => row.subregion_code).filter(Boolean))
+            );
+            return { regionCode, subregionCodes };
+          });
+          regionSubregions.forEach((region) => {
+            if (region.subregionCodes.length === 0) {
+              throw new Error(
+                `Region ${region.regionCode || "Unknown"} has no subregions in the CSV.`
+              );
+            }
+          });
           const allSubregionCodes = new Set(
             countryCodes.map((row) => normalizeNumeric(row.numeric))
           );
