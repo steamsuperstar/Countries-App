@@ -707,8 +707,20 @@
               .data(region.subregions, (d) => d.code)
               .join("text")
               .attr("class", "label subregion-label")
-              .attr("x", (d) => path.centroid(d.geometry)[0])
-              .attr("y", (d) => path.centroid(d.geometry)[1])
+              .attr("x", (d) => {
+                const [x, y] = path.centroid(d.geometry);
+                if (d.name === "Micronesia") {
+                  return x + 30;
+                }
+                return x;
+              })
+              .attr("y", (d) => {
+                const [x, y] = path.centroid(d.geometry);
+                if (d.name === "Micronesia") {
+                  return y + 10;
+                }
+                return y;
+              })
               .text((d) => d.name);
           }
 
@@ -736,8 +748,20 @@
               .data(subregion.features, (d) => d.id)
               .join("text")
               .attr("class", "label country-label")
-              .attr("x", (d) => path.centroid(d)[0])
-              .attr("y", (d) => path.centroid(d)[1])
+              .attr("x", (d) => {
+                const [x, y] = path.centroid(d);
+                if (d.properties.name === "France") {
+                  return x + 12;
+                }
+                return x;
+              })
+              .attr("y", (d) => {
+                const [x, y] = path.centroid(d);
+                if (d.properties.name === "France") {
+                  return y - 14;
+                }
+                return y;
+              })
               .text((d) => d.properties.name || "");
           }
 
