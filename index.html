@@ -589,17 +589,19 @@
             }
           });
 
-          function zoomToGeometry(geometry) {
+          function zoomToGeometry(geometry, options = {}) {
             const [[x0, y0], [x1, y1]] = path.bounds(geometry);
             const dx = x1 - x0;
             const dy = y1 - y0;
             const x = (x0 + x1) / 2;
             const y = (y0 + y1) / 2;
-            const scale = Math.min(8, 0.9 / Math.max(dx / width, dy / height));
+            const padding = options.padding ?? 0.9;
+            const maxScale = options.maxScale ?? 8;
+            const scale = Math.min(maxScale, padding / Math.max(dx / width, dy / height));
             const translate = [width / 2 - scale * x, height / 2 - scale * y];
             svg
               .transition()
-              .duration(750)
+              .duration(options.duration ?? 450)
               .call(
                 zoom.transform,
                 d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
@@ -607,7 +609,7 @@
           }
 
           function resetZoom() {
-            svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+            svg.transition().duration(450).call(zoom.transform, d3.zoomIdentity);
           }
 
           function drawCountries() {
@@ -656,7 +658,7 @@
                 subregionLabelsGroup.classed("is-hidden", false);
                 countryLabelsGroup.classed("is-hidden", true);
                 subregionLabelsGroup.raise();
-                zoomToGeometry(d.geometry);
+                zoomToGeometry(d.geometry, { duration: 450 });
                 updateSelectionLabel(`${d.name} (region)`);
               });
 
@@ -689,7 +691,7 @@
                 subregionLabelsGroup.classed("is-hidden", true);
                 countryLabelsGroup.classed("is-hidden", false);
                 countryLabelsGroup.raise();
-                zoomToGeometry(d.geometry);
+                zoomToGeometry(d.geometry, { duration: 450, padding: 1.05, maxScale: 10 });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
 
