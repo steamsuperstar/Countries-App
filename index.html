@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Equal Earth World Map (D3.js)</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #f7f7fb;
+        color: #1f2933;
+      }
+
+      h1 {
+        margin-bottom: 0.5rem;
+        font-size: clamp(1.5rem, 2vw + 1rem, 2.2rem);
+      }
+
+      p {
+        max-width: 760px;
+        line-height: 1.5;
+      }
+
+      .map-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        padding: 16px;
+        margin-top: 20px;
+      }
+
+      svg {
+        width: 100%;
+        height: 520px;
+        display: block;
+      }
+
+      .country {
+        fill: #c9d6f2;
+        stroke: #52637a;
+        stroke-width: 0.4;
+        cursor: pointer;
+        transition: fill 150ms ease-in-out;
+      }
+
+      .country:hover {
+        fill: #8fb0ff;
+      }
+
+      .country.is-selected {
+        fill: #f97316;
+      }
+
+      .region {
+        fill: #c9f0d3;
+        stroke: #2f855a;
+        stroke-width: 0.7;
+        cursor: pointer;
+        transition: fill 150ms ease-in-out;
+      }
+
+      .region:hover {
+        fill: #8de1aa;
+      }
+
+      .region.is-selected {
+        fill: #10b981;
+      }
+
+      .subregion {
+        fill: #cde8f9;
+        stroke: #285a84;
+        stroke-width: 0.6;
+        cursor: pointer;
+        transition: fill 150ms ease-in-out;
+      }
+
+      .subregion:hover {
+        fill: #7fc4f0;
+      }
+
+      .subregion.is-selected {
+        fill: #0ea5e9;
+      }
+
+      .is-hidden {
+        display: none;
+      }
+
+      .selected-label {
+        font-weight: 600;
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #eef2ff;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Equal Earth Projection: Interactive Countries Map</h1>
+    <p>
+      This beginner-friendly demo loads Natural Earth country boundaries using
+      <strong>d3@7</strong> and <strong>topojson-client</strong>, then renders them with the
+      <strong>Equal Earth</strong> projection. Click a country to highlight it and see its name.
+    </p>
+    <p>
+      We also group the world into top-level <em>regions</em> (Africa, Americas, Asia, Europe,
+      Oceania). Click a region to reveal its sub-regions, then click a sub-region to reveal its
+      countries.
+    </p>
+
+    <div class="map-card">
+      <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
+      <div id="selected-country" class="selected-label">Selected: None</div>
+    </div>
+
+    <!--
+      CSV lookup for ISO3166-1-numeric -> sub-region metadata.
+      Keeping it inline ensures the demo works even when opened directly from disk.
+    -->
+    <script id="country-codes" type="text/csv">
+numeric,region_code,region_name,subregion_code,subregion_name
+4,142,Asia,34,Southern Asia
+248,150,Europe,154,Northern Europe
+8,150,Europe,39,Southern Europe
+12,2,Africa,15,Northern Africa
+16,9,Oceania,61,Polynesia
+20,150,Europe,39,Southern Europe
+24,2,Africa,202,Sub-Saharan Africa
+660,19,Americas,419,Latin America and the Caribbean
+10,,,,
+28,19,Americas,419,Latin America and the Caribbean
+32,19,Americas,419,Latin America and the Caribbean
+51,142,Asia,145,Western Asia
+533,19,Americas,419,Latin America and the Caribbean
+36,9,Oceania,53,Australia and New Zealand
+40,150,Europe,155,Western Europe
+31,142,Asia,145,Western Asia
+44,19,Americas,419,Latin America and the Caribbean
+48,142,Asia,145,Western Asia
+50,142,Asia,34,Southern Asia
+52,19,Americas,419,Latin America and the Caribbean
+112,150,Europe,151,Eastern Europe
+56,150,Europe,155,Western Europe
+84,19,Americas,419,Latin America and the Caribbean
+204,2,Africa,202,Sub-Saharan Africa
+60,19,Americas,21,Northern America
+64,142,Asia,34,Southern Asia
+68,19,Americas,419,Latin America and the Caribbean
+535,19,Americas,419,Latin America and the Caribbean
+70,150,Europe,39,Southern Europe
+72,2,Africa,202,Sub-Saharan Africa
+74,19,Americas,419,Latin America and the Caribbean
+76,19,Americas,419,Latin America and the Caribbean
+86,2,Africa,202,Sub-Saharan Africa
+92,19,Americas,419,Latin America and the Caribbean
+96,142,Asia,35,South-eastern Asia
+100,150,Europe,151,Eastern Europe
+854,2,Africa,202,Sub-Saharan Africa
+108,2,Africa,202,Sub-Saharan Africa
+132,2,Africa,202,Sub-Saharan Africa
+116,142,Asia,35,South-eastern Asia
+120,2,Africa,202,Sub-Saharan Africa
+124,19,Americas,21,Northern America
+136,19,Americas,419,Latin America and the Caribbean
+140,2,Africa,202,Sub-Saharan Africa
+148,2,Africa,202,Sub-Saharan Africa
+152,19,Americas,419,Latin America and the Caribbean
+156,142,Asia,30,Eastern Asia
+344,142,Asia,30,Eastern Asia
+446,142,Asia,30,Eastern Asia
+162,9,Oceania,53,Australia and New Zealand
+166,9,Oceania,53,Australia and New Zealand
+170,19,Americas,419,Latin America and the Caribbean
+174,2,Africa,202,Sub-Saharan Africa
+178,2,Africa,202,Sub-Saharan Africa
+184,9,Oceania,61,Polynesia
+188,19,Americas,419,Latin America and the Caribbean
+191,150,Europe,39,Southern Europe
+192,19,Americas,419,Latin America and the Caribbean
+531,19,Americas,419,Latin America and the Caribbean
+196,142,Asia,145,Western Asia
+203,150,Europe,151,Eastern Europe
+408,142,Asia,30,Eastern Asia
+180,2,Africa,202,Sub-Saharan Africa
+208,150,Europe,154,Northern Europe
+262,2,Africa,202,Sub-Saharan Africa
+212,19,Americas,419,Latin America and the Caribbean
+214,19,Americas,419,Latin America and the Caribbean
+218,19,Americas,419,Latin America and the Caribbean
+818,2,Africa,15,Northern Africa
+222,19,Americas,419,Latin America and the Caribbean
+226,2,Africa,202,Sub-Saharan Africa
+232,2,Africa,202,Sub-Saharan Africa
+233,150,Europe,154,Northern Europe
+748,2,Africa,202,Sub-Saharan Africa
+231,2,Africa,202,Sub-Saharan Africa
+238,19,Americas,419,Latin America and the Caribbean
+234,150,Europe,154,Northern Europe
+242,9,Oceania,54,Melanesia
+246,150,Europe,154,Northern Europe
+250,150,Europe,155,Western Europe
+254,19,Americas,419,Latin America and the Caribbean
+258,9,Oceania,61,Polynesia
+260,2,Africa,202,Sub-Saharan Africa
+266,2,Africa,202,Sub-Saharan Africa
+270,2,Africa,202,Sub-Saharan Africa
+268,142,Asia,145,Western Asia
+276,150,Europe,155,Western Europe
+288,2,Africa,202,Sub-Saharan Africa
+292,150,Europe,39,Southern Europe
+300,150,Europe,39,Southern Europe
+304,19,Americas,21,Northern America
+308,19,Americas,419,Latin America and the Caribbean
+312,19,Americas,419,Latin America and the Caribbean
+316,9,Oceania,57,Micronesia
+320,19,Americas,419,Latin America and the Caribbean
+831,150,Europe,154,Northern Europe
+324,2,Africa,202,Sub-Saharan Africa
+624,2,Africa,202,Sub-Saharan Africa
+328,19,Americas,419,Latin America and the Caribbean
+332,19,Americas,419,Latin America and the Caribbean
+334,9,Oceania,53,Australia and New Zealand
+336,150,Europe,39,Southern Europe
+340,19,Americas,419,Latin America and the Caribbean
+348,150,Europe,151,Eastern Europe
+352,150,Europe,154,Northern Europe
+356,142,Asia,34,Southern Asia
+360,142,Asia,35,South-eastern Asia
+364,142,Asia,34,Southern Asia
+368,142,Asia,145,Western Asia
+372,150,Europe,154,Northern Europe
+833,150,Europe,154,Northern Europe
+376,142,Asia,145,Western Asia
+380,150,Europe,39,Southern Europe
+384,2,Africa,202,Sub-Saharan Africa
+388,19,Americas,419,Latin America and the Caribbean
+392,142,Asia,30,Eastern Asia
+832,150,Europe,154,Northern Europe
+400,142,Asia,145,Western Asia
+398,142,Asia,143,Central Asia
+404,2,Africa,202,Sub-Saharan Africa
+296,9,Oceania,57,Micronesia
+414,142,Asia,145,Western Asia
+417,142,Asia,143,Central Asia
+418,142,Asia,35,South-eastern Asia
+428,150,Europe,154,Northern Europe
+422,142,Asia,145,Western Asia
+426,2,Africa,202,Sub-Saharan Africa
+430,2,Africa,202,Sub-Saharan Africa
+434,2,Africa,15,Northern Africa
+438,150,Europe,155,Western Europe
+440,150,Europe,154,Northern Europe
+442,150,Europe,155,Western Europe
+450,2,Africa,202,Sub-Saharan Africa
+454,2,Africa,202,Sub-Saharan Africa
+458,142,Asia,35,South-eastern Asia
+462,142,Asia,34,Southern Asia
+466,2,Africa,202,Sub-Saharan Africa
+470,150,Europe,39,Southern Europe
+584,9,Oceania,57,Micronesia
+474,19,Americas,419,Latin America and the Caribbean
+478,2,Africa,202,Sub-Saharan Africa
+480,2,Africa,202,Sub-Saharan Africa
+175,2,Africa,202,Sub-Saharan Africa
+484,19,Americas,419,Latin America and the Caribbean
+583,9,Oceania,57,Micronesia
+492,150,Europe,155,Western Europe
+496,142,Asia,30,Eastern Asia
+499,150,Europe,39,Southern Europe
+500,19,Americas,419,Latin America and the Caribbean
+504,2,Africa,15,Northern Africa
+508,2,Africa,202,Sub-Saharan Africa
+104,142,Asia,35,South-eastern Asia
+516,2,Africa,202,Sub-Saharan Africa
+520,9,Oceania,57,Micronesia
+524,142,Asia,34,Southern Asia
+528,150,Europe,155,Western Europe
+540,9,Oceania,54,Melanesia
+554,9,Oceania,53,Australia and New Zealand
+558,19,Americas,419,Latin America and the Caribbean
+562,2,Africa,202,Sub-Saharan Africa
+566,2,Africa,202,Sub-Saharan Africa
+570,9,Oceania,61,Polynesia
+574,9,Oceania,53,Australia and New Zealand
+580,9,Oceania,57,Micronesia
+807,150,Europe,39,Southern Europe
+578,150,Europe,154,Northern Europe
+512,142,Asia,145,Western Asia
+586,142,Asia,34,Southern Asia
+585,9,Oceania,57,Micronesia
+591,19,Americas,419,Latin America and the Caribbean
+598,9,Oceania,54,Melanesia
+600,19,Americas,419,Latin America and the Caribbean
+604,19,Americas,419,Latin America and the Caribbean
+608,142,Asia,35,South-eastern Asia
+612,9,Oceania,61,Polynesia
+616,150,Europe,151,Eastern Europe
+620,150,Europe,39,Southern Europe
+630,19,Americas,419,Latin America and the Caribbean
+634,142,Asia,145,Western Asia
+410,142,Asia,30,Eastern Asia
+498,150,Europe,151,Eastern Europe
+638,2,Africa,202,Sub-Saharan Africa
+642,150,Europe,151,Eastern Europe
+643,150,Europe,151,Eastern Europe
+646,2,Africa,202,Sub-Saharan Africa
+652,19,Americas,419,Latin America and the Caribbean
+654,2,Africa,202,Sub-Saharan Africa
+659,19,Americas,419,Latin America and the Caribbean
+662,19,Americas,419,Latin America and the Caribbean
+663,19,Americas,419,Latin America and the Caribbean
+666,19,Americas,21,Northern America
+670,19,Americas,419,Latin America and the Caribbean
+882,9,Oceania,61,Polynesia
+674,150,Europe,39,Southern Europe
+678,2,Africa,202,Sub-Saharan Africa
+682,142,Asia,145,Western Asia
+686,2,Africa,202,Sub-Saharan Africa
+688,150,Europe,39,Southern Europe
+690,2,Africa,202,Sub-Saharan Africa
+694,2,Africa,202,Sub-Saharan Africa
+702,142,Asia,35,South-eastern Asia
+534,19,Americas,419,Latin America and the Caribbean
+703,150,Europe,151,Eastern Europe
+705,150,Europe,39,Southern Europe
+90,9,Oceania,54,Melanesia
+706,2,Africa,202,Sub-Saharan Africa
+710,2,Africa,202,Sub-Saharan Africa
+239,19,Americas,419,Latin America and the Caribbean
+728,2,Africa,202,Sub-Saharan Africa
+724,150,Europe,39,Southern Europe
+144,142,Asia,34,Southern Asia
+275,142,Asia,145,Western Asia
+729,2,Africa,15,Northern Africa
+740,19,Americas,419,Latin America and the Caribbean
+744,150,Europe,154,Northern Europe
+752,150,Europe,154,Northern Europe
+756,150,Europe,155,Western Europe
+760,142,Asia,145,Western Asia
+158,142,Asia,30,Eastern Asia
+762,142,Asia,143,Central Asia
+764,142,Asia,35,South-eastern Asia
+626,142,Asia,35,South-eastern Asia
+768,2,Africa,202,Sub-Saharan Africa
+772,9,Oceania,61,Polynesia
+776,9,Oceania,61,Polynesia
+780,19,Americas,419,Latin America and the Caribbean
+788,2,Africa,15,Northern Africa
+792,142,Asia,145,Western Asia
+795,142,Asia,143,Central Asia
+796,19,Americas,419,Latin America and the Caribbean
+798,9,Oceania,61,Polynesia
+800,2,Africa,202,Sub-Saharan Africa
+804,150,Europe,151,Eastern Europe
+784,142,Asia,145,Western Asia
+826,150,Europe,154,Northern Europe
+834,2,Africa,202,Sub-Saharan Africa
+581,9,Oceania,57,Micronesia
+840,19,Americas,21,Northern America
+850,19,Americas,419,Latin America and the Caribbean
+858,19,Americas,419,Latin America and the Caribbean
+860,142,Asia,143,Central Asia
+548,9,Oceania,54,Melanesia
+862,19,Americas,419,Latin America and the Caribbean
+704,142,Asia,35,South-eastern Asia
+876,9,Oceania,61,Polynesia
+732,2,Africa,15,Northern Africa
+887,142,Asia,145,Western Asia
+894,2,Africa,202,Sub-Saharan Africa
+716,2,Africa,202,Sub-Saharan Africa
+    </script>
+
+    <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+    <script>
+      // -----------------------------
+      // 1) Basic SVG setup
+      // -----------------------------
+      const svg = d3.select("#world-map");
+      const width = 960;
+      const height = 520;
+
+      // -----------------------------
+      // 2) Projection + path generator
+      // -----------------------------
+      // Equal Earth is a good choice for thematic maps because it preserves
+      // area well while keeping continents visually familiar.
+      const projection = d3.geoEqualEarth().fitSize([width, height], { type: "Sphere" });
+      const path = d3.geoPath(projection);
+
+      // -----------------------------
+      // 3) Data loading
+      // -----------------------------
+      // Natural Earth country geometries come from world-atlas (TopoJSON).
+      const worldAtlasUrl =
+        "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
+
+      // Country code lookup table (CSV embedded in the HTML).
+      const countryCodesCsv = d3.select("#country-codes").text().trim();
+
+      function normalizeNumeric(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? String(parsed) : String(value).trim();
+      }
+
+      const countryCodesUrl =
+        "https://raw.githubusercontent.com/steamsuperstar/Countries-App/main/country-codes.csv";
+
+      async function loadCountryCodes() {
+        try {
+          const response = await fetch(countryCodesUrl);
+          if (response.ok) {
+            return d3.csvParse(await response.text());
+          }
+        } catch (error) {
+          // Ignore and attempt local fallback.
+        }
+        try {
+          const response = await fetch("country-codes.csv");
+          if (response.ok) {
+            return d3.csvParse(await response.text());
+          }
+        } catch (error) {
+          // If the file cannot be loaded (e.g., file:// protocol), fall back to inline CSV.
+        }
+        return d3.csvParse(countryCodesCsv);
+      }
+
+      Promise.all([d3.json(worldAtlasUrl), loadCountryCodes()]).then(
+        ([topology, countryCodes]) => {
+          // Convert TopoJSON to GeoJSON features so D3 can draw each country.
+          const countries = topojson.feature(topology, topology.objects.countries).features;
+
+          // Build a lookup for ISO numeric codes -> sub-region metadata.
+          const subregionByNumeric = new Map(
+            countryCodes.map((row) => [normalizeNumeric(row.numeric), row])
+          );
+
+          // Group the CSV by region/sub-region and build quick lookup helpers.
+          const subregionGroups = d3.group(countryCodes, (row) => row.subregion_code);
+          const regionGroups = d3.group(countryCodes, (row) => row.region_code);
+          const allSubregionCodes = new Set(
+            countryCodes.map((row) => normalizeNumeric(row.numeric))
+          );
+
+          const otherCountries = countries.filter(
+            (feature) => !allSubregionCodes.has(normalizeNumeric(feature.id))
+          );
+
+          // Build sub-region metadata including merged geometry and member features.
+          function safeMerge(geometries) {
+            if (!geometries.length) {
+              return null;
+            }
+            return topojson.merge(topology, geometries);
+          }
+
+          const subregions = Array.from(subregionGroups, ([code, rows]) => {
+            const name = rows[0]?.subregion_name || "Sub-region";
+            const regionCode = rows[0]?.region_code || "";
+            const regionName = rows[0]?.region_name || "Region";
+            const codes = new Set(rows.map((row) => normalizeNumeric(row.numeric)));
+            const features = countries.filter((feature) =>
+              codes.has(normalizeNumeric(feature.id))
+            );
+            const geometries = topology.objects.countries.geometries.filter((geometry) =>
+              codes.has(normalizeNumeric(geometry.id))
+            );
+
+            return {
+              code,
+              name,
+              regionCode,
+              regionName,
+              codes,
+              features,
+              geometry: safeMerge(geometries),
+            };
+          }).filter((subregion) => subregion.geometry && subregion.features.length > 0);
+
+          // Build region metadata including merged geometry and related subregions.
+          const regions = Array.from(regionGroups, ([code, rows]) => {
+            const name = rows[0]?.region_name || "Region";
+            const codes = new Set(rows.map((row) => normalizeNumeric(row.numeric)));
+            const geometries = topology.objects.countries.geometries.filter((geometry) =>
+              codes.has(normalizeNumeric(geometry.id))
+            );
+            const regionSubregions = subregions.filter(
+              (subregion) => String(subregion.regionCode) === String(code)
+            );
+
+            return {
+              code,
+              name,
+              codes,
+              subregions: regionSubregions,
+              geometry: safeMerge(geometries),
+            };
+          }).filter((region) => region.geometry && region.subregions.length > 0);
+
+          // -----------------------------
+          // 4) Draw layers
+          // -----------------------------
+          const countriesGroup = svg.append("g").attr("class", "countries-layer");
+          const regionGroup = svg.append("g").attr("class", "regions-layer");
+          const subregionGroup = svg
+            .append("g")
+            .attr("class", "subregions-layer is-hidden");
+          const subregionCountriesGroup = svg
+            .append("g")
+            .attr("class", "subregion-countries-layer is-hidden");
+
+          function drawCountries() {
+            const baseCountries = regions.length ? otherCountries : countries;
+            countriesGroup
+              .selectAll("path")
+              .data(baseCountries)
+              .join("path")
+              .attr("class", "country")
+              .attr("d", path)
+              .on("click", function (event, d) {
+                clearSelections();
+                d3.select(this).classed("is-selected", true);
+                updateSelectionLabel(d.properties.name || "Unknown country");
+              });
+          }
+
+          function drawRegions() {
+            const hasRegions = regions.length > 0;
+            regionGroup.classed("is-hidden", !hasRegions);
+
+            regionGroup
+              .selectAll("path")
+              .data(regions)
+              .join("path")
+              .attr("class", "region")
+              .attr("d", (d) => path(d.geometry))
+              .on("click", function (event, d) {
+                clearSelections();
+                d3.select(this).classed("is-selected", true);
+                drawSubregions(d);
+                subregionGroup.classed("is-hidden", false);
+                subregionGroup.raise();
+                regionGroup.lower();
+                subregionCountriesGroup.classed("is-hidden", true);
+                updateSelectionLabel(`${d.name} (region)`);
+              });
+          }
+
+          // Draw each sub-region for the selected region.
+          function drawSubregions(region) {
+            subregionGroup
+              .selectAll("path")
+              .data(region.subregions, (d) => d.code)
+              .join("path")
+              .attr("class", "subregion")
+              .attr("d", (d) => path(d.geometry))
+              .on("click", function (event, d) {
+                clearSelections({ keepRegion: true, keepSubregions: true });
+                d3.select(this).classed("is-selected", true);
+                drawSubregionCountries(d);
+                subregionCountriesGroup.classed("is-hidden", false);
+                subregionCountriesGroup.raise();
+                updateSelectionLabel(`${d.name} (sub-region)`);
+              });
+          }
+
+          // Draw sub-region countries (hidden until a sub-region is selected).
+          function drawSubregionCountries(subregion) {
+            subregionCountriesGroup
+              .selectAll("path")
+              .data(subregion.features)
+              .join("path")
+              .attr("class", "country")
+              .attr("d", path)
+              .on("click", function (event, d) {
+                // Keep the sub-region visible; only highlight the chosen country.
+                subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
+                d3.select(this).classed("is-selected", true);
+                const metadata = subregionByNumeric.get(normalizeNumeric(d.id));
+                const subregionName = metadata?.subregion_name || subregion.name;
+                updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
+              });
+          }
+
+          // -----------------------------
+          // 5) Helper functions
+          // -----------------------------
+          function clearSelections(options = {}) {
+            countriesGroup.selectAll(".country").classed("is-selected", false);
+            if (!options.keepRegion) {
+              regionGroup.selectAll(".region").classed("is-selected", false);
+              subregionGroup.classed("is-hidden", true);
+            }
+            if (!options.keepSubregions) {
+              subregionGroup.selectAll(".subregion").classed("is-selected", false);
+              subregionGroup.classed("is-hidden", true);
+            }
+            subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
+            subregionCountriesGroup.classed("is-hidden", true);
+          }
+
+          function updateSelectionLabel(text) {
+            d3.select("#selected-country").text(`Selected: ${text}`);
+          }
+
+          drawCountries();
+          drawRegions();
+        }
+      );
+    </script>
+  </body>
+</html>
