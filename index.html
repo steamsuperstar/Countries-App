@@ -555,18 +555,18 @@
           // -----------------------------
           const countriesGroup = svg.append("g").attr("class", "countries-layer");
           const regionGroup = svg.append("g").attr("class", "regions-layer");
-          const regionLabelsGroup = svg
-            .append("g")
-            .attr("class", "region-labels-layer");
           const subregionGroup = svg
             .append("g")
             .attr("class", "subregions-layer is-hidden");
-          const subregionLabelsGroup = svg
-            .append("g")
-            .attr("class", "subregion-labels-layer is-hidden");
           const subregionCountriesGroup = svg
             .append("g")
             .attr("class", "subregion-countries-layer is-hidden");
+          const regionLabelsGroup = svg
+            .append("g")
+            .attr("class", "region-labels-layer");
+          const subregionLabelsGroup = svg
+            .append("g")
+            .attr("class", "subregion-labels-layer is-hidden");
           const countryLabelsGroup = svg
             .append("g")
             .attr("class", "country-labels-layer is-hidden");
@@ -593,6 +593,7 @@
               regionGroup.raise();
               countriesGroup.lower();
               countriesGroup.classed("is-hidden", true);
+              regionLabelsGroup.raise();
             } else {
               countriesGroup.classed("is-hidden", false);
             }
@@ -614,6 +615,7 @@
                 regionLabelsGroup.classed("is-hidden", true);
                 subregionLabelsGroup.classed("is-hidden", false);
                 countryLabelsGroup.classed("is-hidden", true);
+                subregionLabelsGroup.raise();
                 updateSelectionLabel(`${d.name} (region)`);
               });
 
@@ -644,6 +646,7 @@
                 subregionCountriesGroup.raise();
                 subregionLabelsGroup.classed("is-hidden", true);
                 countryLabelsGroup.classed("is-hidden", false);
+                countryLabelsGroup.raise();
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
 
