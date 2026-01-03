@@ -658,7 +658,9 @@
                 subregionLabelsGroup.classed("is-hidden", false);
                 countryLabelsGroup.classed("is-hidden", true);
                 subregionLabelsGroup.raise();
-                zoomToGeometry(d.geometry, { duration: 450 });
+                if (d.name !== "Oceania") {
+                  zoomToGeometry(d.geometry, { duration: 450 });
+                }
                 updateSelectionLabel(`${d.name} (region)`);
               });
 
@@ -693,7 +695,16 @@
                 countryLabelsGroup.raise();
                 const deepZoomSubregions = new Set(["151", "21", "54"]);
                 const isDeepZoom = deepZoomSubregions.has(String(d.code));
-                zoomToGeometry(d.geometry, {
+                const namedZoomTargets = new Map([
+                  ["Melanesia", "Vanuatu"],
+                  ["Micronesia", "Micronesia (Federated States of)"],
+                  ["Australia and New Zealand", "Australia"],
+                ]);
+                const targetName = namedZoomTargets.get(d.name);
+                const targetFeature = targetName
+                  ? d.features.find((feature) => feature.properties.name === targetName)
+                  : null;
+                zoomToGeometry(targetFeature || d.geometry, {
                   duration: 450,
                   padding: isDeepZoom ? 1.2 : 1.05,
                   maxScale: isDeepZoom ? 12 : 10,
