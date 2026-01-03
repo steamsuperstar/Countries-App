@@ -413,11 +413,28 @@
       const countryCodesUrl =
         "https://raw.githubusercontent.com/steamsuperstar/Countries-App/main/country-codes.csv";
 
+      function normalizeCountryCodeRow(row) {
+        if (row.region_code || row.subregion_code) {
+          return row;
+        }
+        return {
+          numeric: row["ISO3166-1-numeric"] ?? row.numeric,
+          region_code: row["Region Code"] ?? row.region_code,
+          region_name: row["Region Name"] ?? row.region_name,
+          subregion_code: row["Sub-region Code"] ?? row.subregion_code,
+          subregion_name: row["Sub-region Name"] ?? row.subregion_name,
+        };
+      }
+
+      function normalizeCountryCodes(rows) {
+        return rows.map(normalizeCountryCodeRow);
+      }
+
       async function loadCountryCodes() {
         try {
           const response = await fetch(countryCodesUrl);
           if (response.ok) {
-            return d3.csvParse(await response.text());
+            return normalizeCountryCodes(d3.csvParse(await response.text()));
           }
         } catch (error) {
           // Ignore and attempt local fallback.
@@ -425,12 +442,12 @@
         try {
           const response = await fetch("country-codes.csv");
           if (response.ok) {
-            return d3.csvParse(await response.text());
+            return normalizeCountryCodes(d3.csvParse(await response.text()));
           }
         } catch (error) {
           // If the file cannot be loaded (e.g., file:// protocol), fall back to inline CSV.
         }
-        return d3.csvParse(countryCodesCsv);
+        return normalizeCountryCodes(d3.csvParse(countryCodesCsv));
       }
 
       Promise.all([d3.json(worldAtlasUrl), loadCountryCodes()]).then(
