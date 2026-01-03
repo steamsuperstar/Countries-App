@@ -23,7 +23,7 @@
       }
 
       p {
-        max-width: 700px;
+        max-width: 760px;
         line-height: 1.5;
       }
 
@@ -37,7 +37,7 @@
 
       svg {
         width: 100%;
-        height: auto;
+        height: 520px;
         display: block;
       }
 
@@ -57,6 +57,26 @@
         fill: #f97316;
       }
 
+      .subregion {
+        fill: #cde8f9;
+        stroke: #285a84;
+        stroke-width: 0.6;
+        cursor: pointer;
+        transition: fill 150ms ease-in-out;
+      }
+
+      .subregion:hover {
+        fill: #7fc4f0;
+      }
+
+      .subregion.is-selected {
+        fill: #0ea5e9;
+      }
+
+      .is-hidden {
+        display: none;
+      }
+
       .selected-label {
         font-weight: 600;
         margin-top: 12px;
@@ -73,11 +93,75 @@
       <strong>d3@7</strong> and <strong>topojson-client</strong>, then renders them with the
       <strong>Equal Earth</strong> projection. Click a country to highlight it and see its name.
     </p>
+    <p>
+      We also group Europe into a top-level <em>region</em>. Click Europe to reveal the European
+      sub-regions (Northern, Southern, Eastern, Western), then click a sub-region to reveal its
+      countries.
+    </p>
 
     <div class="map-card">
       <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
-      <div id="selected-country" class="selected-label">Selected country: None</div>
+      <div id="selected-country" class="selected-label">Selected: None</div>
     </div>
+
+    <!--
+      CSV lookup for ISO3166-1-numeric -> sub-region metadata.
+      Keeping it inline ensures the demo works even when opened directly from disk.
+    -->
+    <script id="country-codes" type="text/csv">
+numeric,subregion_code,subregion_name
+8,039,Southern Europe
+20,039,Southern Europe
+70,039,Southern Europe
+191,039,Southern Europe
+292,039,Southern Europe
+300,039,Southern Europe
+336,039,Southern Europe
+380,039,Southern Europe
+470,039,Southern Europe
+499,039,Southern Europe
+620,039,Southern Europe
+674,039,Southern Europe
+688,039,Southern Europe
+705,039,Southern Europe
+724,039,Southern Europe
+807,039,Southern Europe
+100,151,Eastern Europe
+112,151,Eastern Europe
+203,151,Eastern Europe
+348,151,Eastern Europe
+498,151,Eastern Europe
+616,151,Eastern Europe
+642,151,Eastern Europe
+643,151,Eastern Europe
+703,151,Eastern Europe
+804,151,Eastern Europe
+208,154,Northern Europe
+233,154,Northern Europe
+234,154,Northern Europe
+246,154,Northern Europe
+248,154,Northern Europe
+352,154,Northern Europe
+372,154,Northern Europe
+428,154,Northern Europe
+440,154,Northern Europe
+578,154,Northern Europe
+744,154,Northern Europe
+752,154,Northern Europe
+826,154,Northern Europe
+831,154,Northern Europe
+832,154,Northern Europe
+833,154,Northern Europe
+40,155,Western Europe
+56,155,Western Europe
+250,155,Western Europe
+276,155,Western Europe
+438,155,Western Europe
+442,155,Western Europe
+492,155,Western Europe
+528,155,Western Europe
+756,155,Western Europe
+    </script>
 
     <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
@@ -105,30 +189,170 @@
       const worldAtlasUrl =
         "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
-      d3.json(worldAtlasUrl).then((topology) => {
-        // Convert TopoJSON to GeoJSON features so D3 can draw each country.
-        const countries = topojson.feature(topology, topology.objects.countries).features;
+      // Country code lookup table (CSV embedded in the HTML).
+      const countryCodesCsv = d3.select("#country-codes").text().trim();
 
-        // -----------------------------
-        // 4) Draw countries
-        // -----------------------------
-        const countriesGroup = svg.append("g");
+      function normalizeNumeric(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? String(parsed) : String(value).trim();
+      }
 
-        countriesGroup
-          .selectAll("path")
-          .data(countries)
-          .join("path")
-          .attr("class", "country")
-          .attr("d", path)
-          .on("click", function (event, d) {
-            // Remove selection from all countries, then select the clicked one.
+      async function loadCountryCodes() {
+        try {
+          const response = await fetch("country-codes.csv");
+          if (response.ok) {
+            return d3.csvParse(await response.text());
+          }
+        } catch (error) {
+          // If the file cannot be loaded (e.g., file:// protocol), fall back to inline CSV.
+        }
+        return d3.csvParse(countryCodesCsv);
+      }
+
+      Promise.all([d3.json(worldAtlasUrl), loadCountryCodes()]).then(
+        ([topology, countryCodes]) => {
+          // Convert TopoJSON to GeoJSON features so D3 can draw each country.
+          const countries = topojson.feature(topology, topology.objects.countries).features;
+
+          // Build a lookup for ISO numeric codes -> sub-region metadata.
+          const subregionByNumeric = new Map(
+            countryCodes.map((row) => [normalizeNumeric(row.numeric), row])
+          );
+
+          // Group the CSV by sub-region and build quick lookup helpers.
+          const subregionGroups = d3.group(countryCodes, (row) => row.subregion_code);
+          const allSubregionCodes = new Set(
+            countryCodes.map((row) => normalizeNumeric(row.numeric))
+          );
+
+          // Europe region is defined by all sub-regions in the CSV.
+          const europeCodes = new Set(allSubregionCodes);
+
+          const otherCountries = countries.filter(
+            (feature) => !allSubregionCodes.has(normalizeNumeric(feature.id))
+          );
+
+          // Build sub-region metadata including merged geometry and member features.
+          const subregions = Array.from(subregionGroups, ([code, rows]) => {
+            const name = rows[0]?.subregion_name || "Sub-region";
+            const codes = new Set(rows.map((row) => normalizeNumeric(row.numeric)));
+            const features = countries.filter((feature) =>
+              codes.has(normalizeNumeric(feature.id))
+            );
+            const geometries = topology.objects.countries.geometries.filter((geometry) =>
+              codes.has(normalizeNumeric(geometry.id))
+            );
+
+            return {
+              code,
+              name,
+              codes,
+              features,
+              geometry: topojson.merge(topology, geometries),
+            };
+          }).filter((subregion) => subregion.geometry && subregion.features.length > 0);
+
+          // Merge all European sub-regions into a single region shape.
+          const europeGeometries = topology.objects.countries.geometries.filter((geometry) =>
+            europeCodes.has(normalizeNumeric(geometry.id))
+          );
+          const europeGeometry = topojson.merge(topology, europeGeometries);
+
+          // -----------------------------
+          // 4) Draw layers
+          // -----------------------------
+          const countriesGroup = svg.append("g").attr("class", "countries-layer");
+          const regionGroup = svg.append("g").attr("class", "regions-layer");
+          const subregionGroup = svg
+            .append("g")
+            .attr("class", "subregions-layer is-hidden");
+          const subregionCountriesGroup = svg
+            .append("g")
+            .attr("class", "subregion-countries-layer is-hidden");
+
+          // Draw the rest of the world (non-subregion countries).
+          countriesGroup
+            .selectAll("path")
+            .data(otherCountries)
+            .join("path")
+            .attr("class", "country")
+            .attr("d", path)
+            .on("click", function (event, d) {
+              clearSelections();
+              d3.select(this).classed("is-selected", true);
+              updateSelectionLabel(d.properties.name || "Unknown country");
+            });
+
+          // Draw Europe region as a single combined shape.
+          regionGroup
+            .append("path")
+            .datum(europeGeometry)
+            .attr("class", "subregion")
+            .attr("d", path)
+            .on("click", function () {
+              clearSelections();
+              d3.select(this).classed("is-selected", true);
+              subregionGroup.classed("is-hidden", false);
+              subregionGroup.raise();
+              regionGroup.lower();
+              subregionCountriesGroup.classed("is-hidden", true);
+              updateSelectionLabel("Europe (region)");
+            });
+
+          // Draw each European sub-region as a single combined shape.
+          subregionGroup
+            .selectAll("path")
+            .data(subregions)
+            .join("path")
+            .attr("class", "subregion")
+            .attr("d", (d) => path(d.geometry))
+            .on("click", function (event, d) {
+              clearSelections({ keepRegion: true });
+              d3.select(this).classed("is-selected", true);
+              drawSubregionCountries(d);
+              subregionCountriesGroup.classed("is-hidden", false);
+              subregionCountriesGroup.raise();
+              updateSelectionLabel(`${d.name} (sub-region)`);
+            });
+          regionGroup.raise();
+
+          // Draw sub-region countries (hidden until a sub-region is selected).
+          function drawSubregionCountries(subregion) {
+            subregionCountriesGroup
+              .selectAll("path")
+              .data(subregion.features)
+              .join("path")
+              .attr("class", "country")
+              .attr("d", path)
+              .on("click", function (event, d) {
+                // Keep the sub-region visible; only highlight the chosen country.
+                subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
+                d3.select(this).classed("is-selected", true);
+                const metadata = subregionByNumeric.get(normalizeNumeric(d.id));
+                const subregionName = metadata?.subregion_name || subregion.name;
+                updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
+              });
+          }
+
+          // -----------------------------
+          // 5) Helper functions
+          // -----------------------------
+          function clearSelections(options = {}) {
             countriesGroup.selectAll(".country").classed("is-selected", false);
-            d3.select(this).classed("is-selected", true);
+            if (!options.keepRegion) {
+              regionGroup.selectAll(".subregion").classed("is-selected", false);
+              subregionGroup.classed("is-hidden", true);
+            }
+            subregionGroup.selectAll(".subregion").classed("is-selected", false);
+            subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
+            subregionCountriesGroup.classed("is-hidden", true);
+          }
 
-            const name = d.properties.name || "Unknown";
-            d3.select("#selected-country").text(`Selected country: ${name}`);
-          });
-      });
+          function updateSelectionLabel(text) {
+            d3.select("#selected-country").text(`Selected: ${text}`);
+          }
+        }
+      );
     </script>
   </body>
 </html>
