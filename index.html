@@ -710,14 +710,14 @@
               .attr("x", (d) => {
                 const [x, y] = path.centroid(d.geometry);
                 if (d.name === "Micronesia") {
-                  return x + 30;
+                  return x + 60;
                 }
                 return x;
               })
               .attr("y", (d) => {
                 const [x, y] = path.centroid(d.geometry);
                 if (d.name === "Micronesia") {
-                  return y + 10;
+                  return y - 10;
                 }
                 return y;
               })
@@ -751,14 +751,14 @@
               .attr("x", (d) => {
                 const [x, y] = path.centroid(d);
                 if (d.properties.name === "France") {
-                  return x + 12;
+                  return x + 20;
                 }
                 return x;
               })
               .attr("y", (d) => {
                 const [x, y] = path.centroid(d);
                 if (d.properties.name === "France") {
-                  return y - 14;
+                  return y - 24;
                 }
                 return y;
               })
