@@ -704,10 +704,12 @@
                 const targetFeature = targetName
                   ? d.features.find((feature) => feature.properties.name === targetName)
                   : null;
+                const useDeeperZoom = d.name === "Micronesia";
+                const useShallowerZoom = d.name === "Melanesia";
                 zoomToGeometry(targetFeature || d.geometry, {
                   duration: 450,
-                  padding: isDeepZoom ? 1.2 : 1.05,
-                  maxScale: isDeepZoom ? 12 : 10,
+                  padding: useShallowerZoom ? 0.95 : useDeeperZoom ? 1.35 : isDeepZoom ? 1.2 : 1.05,
+                  maxScale: useShallowerZoom ? 8 : useDeeperZoom ? 14 : isDeepZoom ? 12 : 10,
                 });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
