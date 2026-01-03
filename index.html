@@ -594,6 +594,10 @@
               );
           }
 
+          function resetZoom() {
+            svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+          }
+
           function drawCountries() {
             const baseCountries = otherCountries.length ? otherCountries : countries;
             countriesGroup
@@ -725,6 +729,7 @@
               regionLabelsGroup.classed("is-hidden", false);
               subregionLabelsGroup.classed("is-hidden", true);
               countryLabelsGroup.classed("is-hidden", true);
+              resetZoom();
             }
             if (!options.keepSubregions) {
               subregionGroup.selectAll(".subregion").classed("is-selected", false);
