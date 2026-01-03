@@ -543,6 +543,9 @@ numeric,region_code,region_name,subregion_code,subregion_name
             if (hasRegions) {
               regionGroup.raise();
               countriesGroup.lower();
+              countriesGroup.classed("is-hidden", true);
+            } else {
+              countriesGroup.classed("is-hidden", false);
             }
 
             regionGroup
