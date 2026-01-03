@@ -782,32 +782,53 @@
                 updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
               });
 
-            const useLatinAmericaOffsets =
-              subregion.name === "Latin America and the Caribbean";
-
             countryLabelsGroup
               .classed("is-hidden", false)
               .selectAll("text")
               .data(subregion.features, (d) => d.id)
               .join("text")
               .attr("class", "label country-label")
-              .attr("x", (d, i) => {
+              .attr("x", (d) => {
                 const [x, y] = path.centroid(d);
                 if (d.properties.name === "France") {
                   return x + 20;
                 }
-                if (useLatinAmericaOffsets) {
-                  return x + (i % 4) * 6 - 6;
+                const countryOffsets = new Map([
+                  ["Antigua and Barbuda", [6, -4]],
+                  ["Barbados", [6, 6]],
+                  ["Dominica", [-6, -6]],
+                  ["Grenada", [8, 8]],
+                  ["Saint Kitts and Nevis", [10, -2]],
+                  ["Saint Lucia", [6, 10]],
+                  ["Saint Vincent and the Grenadines", [10, 12]],
+                  ["Trinidad and Tobago", [12, 10]],
+                  ["Haiti", [-6, -4]],
+                  ["Dominican Republic", [10, 0]],
+                ]);
+                if (countryOffsets.has(d.properties.name)) {
+                  return x + countryOffsets.get(d.properties.name)[0];
                 }
                 return x;
               })
-              .attr("y", (d, i) => {
+              .attr("y", (d) => {
                 const [x, y] = path.centroid(d);
                 if (d.properties.name === "France") {
                   return y - 24;
                 }
-                if (useLatinAmericaOffsets) {
-                  return y + Math.floor(i / 4) * 4 - 6;
+                const countryOffsets = new Map([
+                  ["Antigua and Barbuda", [6, -4]],
+                  ["Barbados", [6, 6]],
+                  ["Dominica", [-6, -6]],
+                  ["Grenada", [8, 8]],
+                  ["Saint Kitts and Nevis", [10, -2]],
+                  ["Saint Lucia", [6, 10]],
+                  ["Saint Vincent and the Grenadines", [10, 12]],
+                  ["Trinidad and Tobago", [12, 10]],
+                  ["Haiti", [-6, -4]],
+                  ["Dominican Republic", [10, 0]],
+                ]);
+                if (countryOffsets.has(d.properties.name)) {
+                  return y + countryOffsets.get(d.properties.name)[1];
                 }
                 return y;
               })
