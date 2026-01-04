@@ -723,7 +723,7 @@
                 const useNorthernAmericaZoom = d.name === "Northern America";
                 const useEasternEuropeZoom = d.name === "Eastern Europe";
                 const useMicronesiaZoom = d.name === "Micronesia";
-                const micronesiaLabelOffset = d.name.length * 7.8;
+                const micronesiaLabelOffset = d.name.length * 7.8 * 2;
                 zoomToGeometry(targetFeature || d.geometry, {
                   duration: 450,
                   padding: useWesternEuropeZoom
@@ -753,9 +753,9 @@
                           ? 12
                           : 10,
                   xOffset: useMicronesiaZoom
-                    ? micronesiaLabelOffset * 4
+                    ? micronesiaLabelOffset
                     : useEasternEuropeZoom
-                      ? 220
+                      ? -120
                       : 0,
                   yOffset: useNorthernAmericaZoom ? -100 : useEasternEuropeZoom ? -150 : 0,
                 });
