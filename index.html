@@ -134,6 +134,13 @@
         bottom: 12px;
         width: min(560px, 92vw);
         line-height: 1.4;
+        min-height: 32px;
+        transition: width 160ms ease-in-out, min-height 160ms ease-in-out;
+      }
+
+      .selected-label.is-expanded {
+        width: min(640px, 94vw);
+        min-height: 64px;
       }
 
       .facts-panel {
@@ -466,6 +473,7 @@
           english_formal: row["UNTERM English Formal"] ?? row.english_formal,
           official_name_en: row["official_name_en"] ?? row.official_name_en,
           global_name: row["Global Name"] ?? row.global_name,
+          capital: row["Capital"] ?? row.capital,
         };
       }
 
@@ -3060,6 +3068,9 @@
           const countryFactsByName = new Map();
           const countryCodeByName = new Map();
           const normalizedCountryCodeByName = new Map();
+          const countryCapitalByNumeric = new Map();
+          const countryCapitalByName = new Map();
+          const normalizedCountryCapitalByName = new Map();
 
           function getCountryNameCandidates(row) {
             return [
@@ -3124,6 +3135,7 @@
 
           countryCodes.forEach((row) => {
             const numeric = normalizeNumeric(row.numeric);
+            const capital = row.capital?.trim();
             if (!numeric) {
               return;
             }
@@ -3135,7 +3147,18 @@
               if (normalizedKey && !normalizedCountryCodeByName.has(normalizedKey)) {
                 normalizedCountryCodeByName.set(normalizedKey, numeric);
               }
+              if (capital) {
+                if (!countryCapitalByName.has(name)) {
+                  countryCapitalByName.set(name, capital);
+                }
+                if (normalizedKey && !normalizedCountryCapitalByName.has(normalizedKey)) {
+                  normalizedCountryCapitalByName.set(normalizedKey, capital);
+                }
+              }
             });
+            if (capital && !countryCapitalByNumeric.has(numeric)) {
+              countryCapitalByNumeric.set(numeric, capital);
+            }
           });
 
           countryFacts.forEach((entry, name) => {
@@ -3164,6 +3187,25 @@
               normalizedCountryCodeByName.get(normalizeCountryName(canonicalName)) ??
               ""
             );
+          }
+
+          function getCountryCapital(countryName, countryNumeric) {
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            const numericKey = countryNumeric ? normalizeNumeric(countryNumeric) : "";
+            if (numericKey && countryCapitalByNumeric.has(numericKey)) {
+              return countryCapitalByNumeric.get(numericKey);
+            }
+            if (countryCapitalByName.has(canonicalName)) {
+              return countryCapitalByName.get(canonicalName);
+            }
+            const normalizedKey = normalizeCountryName(canonicalName);
+            if (normalizedKey && normalizedCountryCapitalByName.has(normalizedKey)) {
+              return normalizedCountryCapitalByName.get(normalizedKey);
+            }
+            const fallbackNumeric = getCountryNumeric(canonicalName);
+            return fallbackNumeric
+              ? countryCapitalByNumeric.get(normalizeNumeric(fallbackNumeric)) ?? ""
+              : "";
           }
 
           const missingCountryCodes = [];
@@ -3270,6 +3312,7 @@
                 setSelectionDisplay({
                   label: countryName,
                   fact: getCountryFact(countryName, d.id),
+                  capital: getCountryCapital(countryName, d.id),
                 });
               });
           }
@@ -3485,6 +3528,7 @@
                 setSelectionDisplay({
                   label: `${countryName} (${subregionName})`,
                   fact: getCountryFact(countryName, d.id),
+                  capital: getCountryCapital(countryName, d.id),
                 });
               });
 
@@ -3568,10 +3612,19 @@
             }
           }
 
-          function setSelectionDisplay({ label, fact } = {}) {
+          function setSelectionDisplay({ label, fact, capital } = {}) {
             const selection = label ?? "None";
-            const factText = fact ? `<br><span>${fact}</span>` : "";
-            d3.select("#selected-country").html(`Selected: ${selection}${factText}`);
+            const textLines = [];
+            if (fact) {
+              textLines.push(`<span>${fact}</span>`);
+            }
+            if (capital) {
+              textLines.push(`<span>Capital: ${capital}</span>`);
+            }
+            const extraText = textLines.length ? `<br>${textLines.join("<br>")}` : "";
+            d3.select("#selected-country")
+              .classed("is-expanded", Boolean(capital))
+              .html(`Selected: ${selection}${extraText}`);
           }
 
           function getSelectionFact(selection) {
