@@ -12,7 +12,7 @@
 
       body {
         margin: 0;
-        padding: 24px;
+        padding: 0;
         background: #f7f7fb;
         color: #1f2933;
       }
@@ -29,15 +29,24 @@
 
       .map-card {
         background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-        padding: 16px;
-        margin-top: 20px;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 12px;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .map-shell {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
       }
 
       svg {
         width: 100%;
-        height: 520px;
+        height: 100%;
         display: block;
       }
 
@@ -116,17 +125,22 @@
 
       .selected-label {
         font-weight: 600;
-        margin-top: 12px;
+        margin: 0;
         padding: 8px 12px;
         background: #eef2ff;
         border-radius: 8px;
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
       }
     </style>
   </head>
   <body>
     <div class="map-card">
-      <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
-      <div id="selected-country" class="selected-label">Selected: None</div>
+      <div class="map-shell">
+        <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
+        <div id="selected-country" class="selected-label">Selected: None</div>
+      </div>
     </div>
 
     <!--
@@ -581,12 +595,17 @@
             const [[x0, y0], [x1, y1]] = path.bounds(geometry);
             const dx = x1 - x0;
             const dy = y1 - y0;
-            const x = (x0 + x1) / 2;
-            const y = (y0 + y1) / 2;
+            const fallbackCenter = [(x0 + x1) / 2, (y0 + y1) / 2];
+            const [x, y] = options.center ?? fallbackCenter;
             const padding = options.padding ?? 0.9;
             const maxScale = options.maxScale ?? 8;
             const scale = Math.min(maxScale, padding / Math.max(dx / width, dy / height));
-            const translate = [width / 2 - scale * x, height / 2 - scale * y];
+            const xOffset = options.xOffset ?? 0;
+            const yOffset = options.yOffset ?? 0;
+            const translate = [
+              width / 2 - scale * x + xOffset,
+              height / 2 - scale * y + yOffset,
+            ];
             svg
               .transition()
               .duration(options.duration ?? 450)
@@ -647,7 +666,12 @@
                 countryLabelsGroup.classed("is-hidden", true);
                 subregionLabelsGroup.raise();
                 if (d.name !== "Oceania") {
-                  zoomToGeometry(d.geometry, { duration: 450 });
+                  const useEuropeZoom = d.name === "Europe";
+                  zoomToGeometry(d.geometry, {
+                    duration: 450,
+                    padding: useEuropeZoom ? 1.15 : 0.9,
+                    maxScale: useEuropeZoom ? 9 : 8,
+                  });
                 }
                 updateSelectionLabel(`${d.name} (region)`);
               });
@@ -697,30 +721,72 @@
                 const useShallowerZoom = d.name === "Melanesia";
                 const useWesternEuropeZoom = d.name === "Western Europe";
                 const useNorthernAmericaZoom = d.name === "Northern America";
-                zoomToGeometry(targetFeature || d.geometry, {
+                const useEasternEuropeZoom = d.name === "Eastern Europe";
+                const useMicronesiaZoom = d.name === "Micronesia";
+                const micronesiaClusterNames = new Set([
+                  "Micronesia (Federated States of)",
+                  "Marshall Islands",
+                  "Palau",
+                  "Nauru",
+                  "Guam",
+                  "Northern Mariana Islands",
+                ]);
+                const micronesiaClusterFeatures = d.features.filter((feature) =>
+                  micronesiaClusterNames.has(feature.properties.name)
+                );
+                const micronesiaFocusFeatures =
+                  micronesiaClusterFeatures.length > 0
+                    ? micronesiaClusterFeatures
+                    : d.features;
+                const micronesiaClusterCenter = useMicronesiaZoom
+                  ? path.centroid({
+                      type: "FeatureCollection",
+                      features: micronesiaFocusFeatures,
+                    })
+                  : null;
+                const zoomTarget = useMicronesiaZoom ? d.geometry : targetFeature || d.geometry;
+                const micronesiaNudge = [24, -12];
+                zoomToGeometry(zoomTarget, {
                   duration: 450,
+                  center: useMicronesiaZoom ? micronesiaClusterCenter : null,
                   padding: useWesternEuropeZoom
                     ? 1.25
                     : useNorthernAmericaZoom
-                      ? 1.35
-                    : useShallowerZoom
                       ? 0.95
-                      : useDeeperZoom
-                        ? 1.35
-                        : isDeepZoom
-                          ? 1.2
-                          : 1.05,
+                      : useEasternEuropeZoom
+                        ? 1.15
+                      : useShallowerZoom
+                        ? 0.95
+                        : useDeeperZoom
+                          ? 1.85
+                          : isDeepZoom
+                            ? 1.2
+                            : 1.05,
                   maxScale: useWesternEuropeZoom
                     ? 12
                     : useNorthernAmericaZoom
-                      ? 14
-                    : useShallowerZoom
-                      ? 8
-                      : useDeeperZoom
-                        ? 14
-                        : isDeepZoom
+                      ? 12
+                      : useEasternEuropeZoom
+                        ? 12
+                      : useShallowerZoom
+                        ? 8
+                        : useDeeperZoom
+                          ? 22
+                          : isDeepZoom
                           ? 12
                           : 10,
+                  xOffset: useMicronesiaZoom
+                    ? micronesiaNudge[0]
+                    : useEasternEuropeZoom
+                      ? -120
+                      : 0,
+                  yOffset: useMicronesiaZoom
+                    ? micronesiaNudge[1]
+                    : useNorthernAmericaZoom
+                      ? -100
+                      : useEasternEuropeZoom
+                        ? -150
+                        : 0,
                 });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
