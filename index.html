@@ -12,7 +12,7 @@
 
       body {
         margin: 0;
-        padding: 24px;
+        padding: 0;
         background: #f7f7fb;
         color: #1f2933;
       }
@@ -29,15 +29,24 @@
 
       .map-card {
         background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-        padding: 16px;
-        margin-top: 20px;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 12px;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .map-shell {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
       }
 
       svg {
         width: 100%;
-        height: 520px;
+        height: 100%;
         display: block;
       }
 
@@ -116,17 +125,22 @@
 
       .selected-label {
         font-weight: 600;
-        margin-top: 12px;
+        margin: 0;
         padding: 8px 12px;
         background: #eef2ff;
         border-radius: 8px;
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
       }
     </style>
   </head>
   <body>
     <div class="map-card">
-      <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
-      <div id="selected-country" class="selected-label">Selected: None</div>
+      <div class="map-shell">
+        <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
+        <div id="selected-country" class="selected-label">Selected: None</div>
+      </div>
     </div>
 
     <!--
