@@ -1931,6 +1931,77 @@
             ["Bolivia", "Bolivia (Plurinational State of)"],
             ["Venezuela", "Venezuela (Bolivarian Republic of)"],
           ]);
+          const countryLeadInPatterns = [
+            /^United Republic of /i,
+            /^Republic of /i,
+            /^Democratic Republic of /i,
+            /^State of /i,
+            /^Plurinational State of /i,
+            /^Bolivarian Republic of /i,
+            /^Federated States of /i,
+            /^Islamic Republic of /i,
+            /^People's Republic of /i,
+          ];
+          const normalizedCountryFacts = new Map();
+
+          function getCountryNameVariants(name) {
+            const variants = new Set([name]);
+            const withoutArticle = name.replace(/^the\s+/i, "").trim();
+            variants.add(withoutArticle);
+            const withoutTheParen = name.replace(/\s*\(the\)\s*/gi, " ").trim();
+            variants.add(withoutTheParen);
+            const withoutParenthetical = name
+              .replace(/\s*\([^)]*\)\s*/g, " ")
+              .replace(/\s+/g, " ")
+              .trim();
+            variants.add(withoutParenthetical);
+            Array.from(variants).forEach((variant) => {
+              countryLeadInPatterns.forEach((pattern) => {
+                const stripped = variant.replace(pattern, "").trim();
+                if (stripped) {
+                  variants.add(stripped);
+                }
+              });
+            });
+            return Array.from(variants);
+          }
+
+          function normalizeCountryName(name) {
+            if (!name) {
+              return "";
+            }
+            const withoutDiacritics = name
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "");
+            const expanded = withoutDiacritics
+              .replace(/\bS\.\b/gi, "South")
+              .replace(/\bN\.\b/gi, "North")
+              .replace(/\bE\.\b/gi, "East")
+              .replace(/\bW\.\b/gi, "West")
+              .replace(/\bEq\.\b/gi, "Equatorial")
+              .replace(/\bDem\.\b/gi, "Democratic")
+              .replace(/\bRep\.\b/gi, "Republic")
+              .replace(/\bFed\.\b/gi, "Federated")
+              .replace(/\bSt\.\b/gi, "Saint")
+              .replace(/\bIs\.\b/gi, "Islands")
+              .replace(/\bIsl\.\b/gi, "Islands");
+            const tokens = expanded
+              .replace(/[^a-zA-Z0-9 ]/g, " ")
+              .toLowerCase()
+              .split(/\s+/)
+              .filter(Boolean)
+              .filter((token) => !["of", "the", "and"].includes(token));
+            return tokens.join(" ");
+          }
+
+          countryFacts.forEach((fact, name) => {
+            getCountryNameVariants(name).forEach((variant) => {
+              const key = normalizeCountryName(variant);
+              if (key && !normalizedCountryFacts.has(key)) {
+                normalizedCountryFacts.set(key, fact);
+              }
+            });
+          });
 
           // -----------------------------
           // 4) Draw layers
@@ -2336,7 +2407,12 @@
 
           function getCountryFact(countryName) {
             const canonicalName = countryAliases.get(countryName) ?? countryName;
-            return countryFacts.get(canonicalName) ?? "";
+            const directFact = countryFacts.get(canonicalName);
+            if (directFact) {
+              return directFact;
+            }
+            const normalizedKey = normalizeCountryName(canonicalName);
+            return normalizedCountryFacts.get(normalizedKey) ?? "";
           }
 
           drawCountries();
