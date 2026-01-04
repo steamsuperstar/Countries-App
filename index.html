@@ -424,7 +424,7 @@
       // -----------------------------
       // Natural Earth country geometries come from world-atlas (TopoJSON).
       const worldAtlasUrl =
-        "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
+        "https://cdn.jsdelivr.net/npm/visionscarto-world-atlas@1/world/50m.json";
 
       // Country code lookup table (CSV embedded in the HTML).
       const countryCodesCsv = d3.select("#country-codes").text().trim();
@@ -477,7 +477,12 @@
       Promise.all([d3.json(worldAtlasUrl), loadCountryCodes()]).then(
         ([topology, countryCodes]) => {
           // Convert TopoJSON to GeoJSON features so D3 can draw each country.
-          const countries = topojson.feature(topology, topology.objects.countries).features;
+          const countryObjectKey =
+            ["countries", "world", "admin", "ne_50m_admin_0_countries"].find(
+              (key) => topology.objects[key]
+            ) ?? Object.keys(topology.objects)[0];
+          const countryObject = topology.objects[countryObjectKey];
+          const countries = topojson.feature(topology, countryObject).features;
 
           // Build a lookup for ISO numeric codes -> sub-region metadata.
           const validRows = countryCodes.filter(
@@ -515,7 +520,7 @@
             const features = countries.filter((feature) =>
               codes.has(normalizeNumeric(feature.id))
             );
-            const geometries = topology.objects.countries.geometries.filter((geometry) =>
+            const geometries = countryObject.geometries.filter((geometry) =>
               codes.has(normalizeNumeric(geometry.id))
             );
 
@@ -534,7 +539,7 @@
           const regions = Array.from(regionGroups, ([code, rows]) => {
             const name = rows[0]?.region_name || "Region";
             const codes = new Set(rows.map((row) => normalizeNumeric(row.numeric)));
-            const geometries = topology.objects.countries.geometries.filter((geometry) =>
+            const geometries = countryObject.geometries.filter((geometry) =>
               codes.has(normalizeNumeric(geometry.id))
             );
             const regionSubregions = subregions.filter(
