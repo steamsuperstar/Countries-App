@@ -132,6 +132,18 @@
         position: absolute;
         left: 12px;
         bottom: 12px;
+        width: min(560px, 92vw);
+        line-height: 1.4;
+      }
+
+      .facts-panel {
+        padding: 20px 12px 32px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .facts-panel {
+        display: none;
       }
     </style>
   </head>
@@ -141,6 +153,8 @@
         <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
         <div id="selected-country" class="selected-label">Selected: None</div>
       </div>
+      <section class="facts-panel" aria-label="UN M49 fun social facts">
+      </section>
     </div>
 
     <!--
@@ -555,6 +569,943 @@
             };
           }).filter((region) => region.geometry && region.subregions.length > 0);
 
+          const regionFacts = new Map([
+            [
+              "Africa",
+              {
+                code: "002",
+                fact:
+                  "Africa is home to the youngest population in the world — more than 60% of Africans are under 25, shaping global music, fashion, and digital culture.",
+              },
+            ],
+            [
+              "Americas",
+              {
+                code: "019",
+                fact:
+                  "The Americas contain every major world religion, yet many of the region’s most influential cultural movements (jazz, hip-hop, salsa) originated locally.",
+              },
+            ],
+            [
+              "Asia",
+              {
+                code: "142",
+                fact:
+                  "Asia contains more languages than any other region, with over 2,300 living languages spoken across the continent.",
+              },
+            ],
+            [
+              "Europe",
+              {
+                code: "150",
+                fact:
+                  "Europe has the highest number of international borders per square kilometer, which helps explain its dense mix of languages, cuisines, and identities.",
+              },
+            ],
+            [
+              "Oceania",
+              {
+                code: "009",
+                fact:
+                  "Oceania’s societies are among the most maritime-oriented cultures on Earth, with navigation traditions that predate modern instruments.",
+              },
+            ],
+            [
+              "Antarctica",
+              {
+                code: "010",
+                fact:
+                  "Antarctica has no permanent population, yet is governed cooperatively by dozens of countries under international treaties — a rare example of peaceful global governance.",
+              },
+            ],
+          ]);
+
+          const subregionFacts = new Map([
+            [
+              "Northern Africa",
+              {
+                code: "015",
+                fact:
+                  "Arabic, Amazigh (Berber), French, and English influences intersect here, making it one of the world’s most linguistically blended regions.",
+              },
+            ],
+            [
+              "Western Africa",
+              {
+                code: "011",
+                fact:
+                  "Western Africa is a global music powerhouse, influencing jazz, blues, reggae, and Afrobeat worldwide.",
+              },
+            ],
+            [
+              "Middle Africa",
+              {
+                code: "017",
+                fact:
+                  "Extended family networks play a central social role, often functioning as economic safety nets where formal systems are limited.",
+              },
+            ],
+            [
+              "Eastern Africa",
+              {
+                code: "014",
+                fact:
+                  "This region is considered a cradle of humanity and remains one of the world’s most linguistically diverse areas.",
+              },
+            ],
+            [
+              "Southern Africa",
+              {
+                code: "018",
+                fact:
+                  "Southern Africa has some of the strongest traditions of oral storytelling, where history is preserved through spoken narrative.",
+              },
+            ],
+            [
+              "Sub-Saharan Africa",
+              {
+                code: "202",
+                fact:
+                  "Social life is deeply community-oriented, with extended families, shared celebrations, and music often playing a central role in everyday connection.",
+              },
+            ],
+            [
+              "Northern America",
+              {
+                code: "021",
+                fact:
+                  "High levels of immigration have made Northern America one of the most culturally plural regions in the world.",
+              },
+            ],
+            [
+              "Central America",
+              {
+                code: "013",
+                fact:
+                  "Community festivals blending Indigenous, African, and European traditions are central to social life.",
+              },
+            ],
+            [
+              "Latin America and the Caribbean",
+              {
+                code: "419",
+                fact:
+                  "Social interaction is often expressive and outward-facing, with strong emphasis on family, public gatherings, music, and shared celebration in daily life.",
+              },
+            ],
+            [
+              "Caribbean",
+              {
+                code: "029",
+                fact:
+                  "Despite its small land area, the Caribbean has had an outsized influence on global music, food, and sports.",
+              },
+            ],
+            [
+              "South America",
+              {
+                code: "005",
+                fact:
+                  "South America hosts some of the world’s strongest regional identities, where local culture often matters more than national borders.",
+              },
+            ],
+            [
+              "Central Asia",
+              {
+                code: "143",
+                fact:
+                  "Hospitality is a deeply rooted social value — guests are traditionally treated as honored visitors, regardless of social status.",
+              },
+            ],
+            [
+              "Eastern Asia",
+              {
+                code: "030",
+                fact:
+                  "Collective harmony and respect for elders are core social values that strongly influence education and work culture.",
+              },
+            ],
+            [
+              "Southern Asia",
+              {
+                code: "034",
+                fact:
+                  "This sub-region has some of the largest and most vibrant family networks in the world, often spanning multiple generations under one roof.",
+              },
+            ],
+            [
+              "South-eastern Asia",
+              {
+                code: "035",
+                fact:
+                  "Markets and street food are central social spaces, acting as daily meeting points for communities.",
+              },
+            ],
+            [
+              "Western Asia",
+              {
+                code: "145",
+                fact:
+                  "Family, tribe, and community affiliations often shape social identity as strongly as nationality.",
+              },
+            ],
+            [
+              "Northern Europe",
+              {
+                code: "154",
+                fact:
+                  "High trust in public institutions supports strong social welfare systems and high levels of civic participation.",
+              },
+            ],
+            [
+              "Western Europe",
+              {
+                code: "155",
+                fact:
+                  "Many modern ideas about democracy, labor rights, and social contracts emerged here and spread globally.",
+              },
+            ],
+            [
+              "Southern Europe",
+              {
+                code: "039",
+                fact:
+                  "Daily social life is highly public — cafés, plazas, and streets are important community spaces.",
+              },
+            ],
+            [
+              "Eastern Europe",
+              {
+                code: "151",
+                fact:
+                  "Shared historical experiences have fostered strong traditions of resilience, mutual aid, and cultural preservation.",
+              },
+            ],
+            [
+              "Australia and New Zealand",
+              {
+                code: "053",
+                fact:
+                  "Indigenous cultures emphasize a deep spiritual connection to land, influencing modern conversations about identity and stewardship.",
+              },
+            ],
+            [
+              "Melanesia",
+              {
+                code: "054",
+                fact:
+                  "Village-based social organization remains central, with strong obligations to kin and community.",
+              },
+            ],
+            [
+              "Micronesia",
+              {
+                code: "057",
+                fact:
+                  "Social status is often linked to knowledge of genealogy and navigation rather than wealth.",
+              },
+            ],
+            [
+              "Polynesia",
+              {
+                code: "061",
+                fact:
+                  "Culture is preserved through performance — dance, chant, and ceremony are essential to social continuity.",
+              },
+            ],
+          ]);
+
+          const countryFacts = new Map([
+            [
+              "Åland Islands",
+              "Social life is shaped by close-knit island communities where Swedish language and maritime traditions remain central to everyday identity.",
+            ],
+            [
+              "Algeria",
+              "Social life often centers on family gatherings and long conversations shared over tea or meals.",
+            ],
+            [
+              "Albania",
+              "Hospitality is a strong social value, and guests are often treated with exceptional warmth and generosity.",
+            ],
+            [
+              "Angola",
+              "Music and dance play a major role in social connection, especially during celebrations and community events.",
+            ],
+            [
+              "Andorra",
+              "With a small population, social connections often overlap between work, family, and community life.",
+            ],
+            [
+              "Austria",
+              "Cafés serve as important social spaces where conversation, reading, and lingering are part of daily life.",
+            ],
+            [
+              "Benin",
+              "Traditions, storytelling, and community rituals remain important ways of passing on social values.",
+            ],
+            [
+              "Belarus",
+              "Family and long-standing friendships often form the backbone of social trust and support networks.",
+            ],
+            [
+              "Belgium",
+              "Social identity is closely tied to language and region, shaping food, humor, and everyday interactions.",
+            ],
+            [
+              "Botswana",
+              "Community cooperation and mutual respect are strongly reflected in everyday social interactions.",
+            ],
+            [
+              "Bosnia and Herzegovina",
+              "Coffee culture plays a central social role, with long conversations marking friendship and hospitality.",
+            ],
+            [
+              "British Indian Ocean Territory",
+              "With no permanent civilian population, social life is shaped mainly by temporary work and shared routines.",
+            ],
+            [
+              "Bulgaria",
+              "Traditions around music, dance, and seasonal festivals remain important ways of strengthening community bonds.",
+            ],
+            [
+              "Burkina Faso",
+              "Community festivals and music are central to social life and collective identity.",
+            ],
+            [
+              "Burundi",
+              "Social bonds are often reinforced through shared agricultural work and family networks.",
+            ],
+            [
+              "Cabo Verde",
+              "Music and migration history strongly shape social identity and everyday conversation.",
+            ],
+            [
+              "Cameroon",
+              "Great cultural diversity means social customs vary widely between regions and communities.",
+            ],
+            [
+              "Central African Republic",
+              "Social life often revolves around extended families and local community support systems.",
+            ],
+            [
+              "Chad",
+              "Social identity is closely tied to ethnic group, language, and local traditions.",
+            ],
+            [
+              "Comoros",
+              "Strong family ties and community ceremonies play a key role in social life.",
+            ],
+            [
+              "Congo",
+              "Music and dance are common social languages that bring communities together.",
+            ],
+            [
+              "Croatia",
+              "Social life often revolves around shared meals and time spent outdoors, especially along the coast.",
+            ],
+            [
+              "Czechia",
+              "Pubs and local gathering spots are key social hubs where community life unfolds informally.",
+            ],
+            [
+              "Czech Republic",
+              "Pubs and local gathering spots are key social hubs where community life unfolds informally.",
+            ],
+            [
+              "Democratic Republic of the Congo",
+              "Despite vast size, social life is often very local, centered on neighborhood and family ties.",
+            ],
+            [
+              "Denmark",
+              "Everyday social life emphasizes comfort and togetherness, often summed up by the idea of hygge.",
+            ],
+            [
+              "Djibouti",
+              "Social interaction reflects a blend of African, Arab, and maritime influences.",
+            ],
+            [
+              "Egypt",
+              "Family life and hospitality remain central to everyday social structure.",
+            ],
+            [
+              "Equatorial Guinea",
+              "Social life often blends local traditions with influences from Spanish culture.",
+            ],
+            [
+              "Eritrea",
+              "Strong community bonds are often built through shared history and collective responsibility.",
+            ],
+            [
+              "Estonia",
+              "Digital life blends smoothly with social life, while shared traditions still anchor community identity.",
+            ],
+            [
+              "Eswatini",
+              "Traditional ceremonies and respect for elders play an important social role.",
+            ],
+            [
+              "Ethiopia",
+              "Coffee ceremonies are a key social ritual that brings families and neighbors together.",
+            ],
+            [
+              "Faroe Islands",
+              "Small, remote communities place strong emphasis on mutual support and shared responsibility.",
+            ],
+            [
+              "Finland",
+              "Quiet respect for personal space coexists with deep trust in close social circles.",
+            ],
+            [
+              "France",
+              "Meals are often social rituals, where time spent together matters as much as the food itself.",
+            ],
+            [
+              "French Southern Territories",
+              "Social interaction is limited to small, temporary research communities.",
+            ],
+            [
+              "Gabon",
+              "Social life often balances modern urban living with strong family traditions.",
+            ],
+            [
+              "Gambia",
+              "Daily social life is shaped by close-knit communities and frequent neighborly interaction.",
+            ],
+            [
+              "Germany",
+              "Clubs and associations play a major role in social life, bringing people together around shared interests.",
+            ],
+            [
+              "Gibraltar",
+              "Daily life reflects a blend of cultures, where social interactions easily cross linguistic and national lines.",
+            ],
+            [
+              "Ghana",
+              "Social identity is often reinforced through festivals, storytelling, and respect for elders.",
+            ],
+            [
+              "Greece",
+              "Conversation, food, and public spaces form the heart of social life and community connection.",
+            ],
+            [
+              "Guernsey",
+              "Island life encourages close social ties, where community events and shared history matter greatly.",
+            ],
+            [
+              "Guinea",
+              "Music and oral tradition play an important role in community life.",
+            ],
+            [
+              "Guinea-Bissau",
+              "Village life and extended family networks remain central to social organization.",
+            ],
+            [
+              "Holy See",
+              "Social life centers on religious tradition and international exchange rather than a resident population.",
+            ],
+            [
+              "Hungary",
+              "Family gatherings and shared meals are important anchors of social life.",
+            ],
+            [
+              "Ivory Coast",
+              "Social life reflects a mix of ethnic traditions and modern urban culture.",
+            ],
+            [
+              "Iceland",
+              "A small population fosters overlapping social networks where people are often connected in multiple ways.",
+            ],
+            [
+              "Ireland",
+              "Storytelling, humor, and conversation play a central role in everyday social interaction.",
+            ],
+            [
+              "Isle of Man",
+              "Strong local identity is reinforced through community traditions and shared island history.",
+            ],
+            [
+              "Italy",
+              "Social life often unfolds in public spaces, where food, family, and conversation come together daily.",
+            ],
+            [
+              "Kenya",
+              "Social connections often form through family, community groups, and shared public spaces.",
+            ],
+            [
+              "Jersey",
+              "Community life balances local traditions with influences from both Britain and France.",
+            ],
+            [
+              "Latvia",
+              "Folk traditions and seasonal celebrations remain important expressions of social identity.",
+            ],
+            [
+              "Lesotho",
+              "Strong community ties are shaped by rural life and shared cultural traditions.",
+            ],
+            [
+              "Liberia",
+              "Storytelling and shared history are important parts of social interaction.",
+            ],
+            [
+              "Libya",
+              "Family and tribal connections strongly influence social life.",
+            ],
+            [
+              "Liechtenstein",
+              "With a small population, social and professional circles often overlap closely.",
+            ],
+            [
+              "Lithuania",
+              "Singing and cultural festivals play a meaningful role in maintaining community bonds.",
+            ],
+            [
+              "Madagascar",
+              "Social customs emphasize respect for ancestors and community cooperation.",
+            ],
+            [
+              "Luxembourg",
+              "Daily social life is highly multilingual, reflecting the country’s international character.",
+            ],
+            [
+              "Malawi",
+              "Friendliness and informal social interaction are often highlighted in daily life.",
+            ],
+            [
+              "Malta",
+              "Community life is shaped by neighborhood ties, religious festivals, and shared outdoor spaces.",
+            ],
+            [
+              "Mali",
+              "Music and oral history play a central role in maintaining social bonds.",
+            ],
+            [
+              "Mauritania",
+              "Social life reflects a blend of desert, coastal, and nomadic traditions.",
+            ],
+            [
+              "Mauritius",
+              "A multicultural society where social life blends many cuisines, languages, and traditions.",
+            ],
+            [
+              "Mayotte",
+              "Community life reflects a mix of African, Arab, and French cultural influences.",
+            ],
+            [
+              "Monaco",
+              "Social life blends local community with an international population drawn by work and events.",
+            ],
+            [
+              "Montenegro",
+              "Hospitality and strong personal relationships are central to everyday social interactions.",
+            ],
+            [
+              "Morocco",
+              "Social life often centers on hospitality, shared meals, and lively marketplaces.",
+            ],
+            [
+              "Mozambique",
+              "Music, dance, and coastal traditions shape everyday social interaction.",
+            ],
+            [
+              "Namibia",
+              "Social connections often form around community gatherings and shared outdoor life.",
+            ],
+            [
+              "Netherlands",
+              "Direct communication and informal social norms shape how people interact day to day.",
+            ],
+            [
+              "Niger",
+              "Social identity is closely linked to local customs, language, and family ties.",
+            ],
+            [
+              "Nigeria",
+              "With immense cultural diversity, social life varies widely but often centers on community and celebration.",
+            ],
+            [
+              "North Macedonia",
+              "Music, food, and family gatherings remain key ways of maintaining social ties.",
+            ],
+            [
+              "Norway",
+              "Equality and trust strongly influence social interaction, even in informal settings.",
+            ],
+            [
+              "Réunion",
+              "Social life blends African, Asian, and European influences into a distinctive island culture.",
+            ],
+            [
+              "Poland",
+              "Family celebrations and shared traditions play a major role in social life.",
+            ],
+            [
+              "Portugal",
+              "Social life often centers on long meals and relaxed conversation with family and friends.",
+            ],
+            [
+              "Republic of Moldova",
+              "Community connections are often strengthened through shared food, hospitality, and local customs.",
+            ],
+            [
+              "Moldova",
+              "Community connections are often strengthened through shared food, hospitality, and local customs.",
+            ],
+            [
+              "Romania",
+              "Social traditions often blend rural heritage with modern urban life.",
+            ],
+            [
+              "Russian Federation",
+              "Social circles are often built on deep, long-term relationships rather than casual acquaintance.",
+            ],
+            [
+              "Russia",
+              "Social circles are often built on deep, long-term relationships rather than casual acquaintance.",
+            ],
+            [
+              "Rwanda",
+              "Community cooperation and shared responsibility are emphasized in social life.",
+            ],
+            [
+              "Saint Helena",
+              "Isolation has fostered a close-knit community with strong shared identity.",
+            ],
+            [
+              "San Marino",
+              "A strong sense of shared history helps maintain close community bonds.",
+            ],
+            [
+              "Sao Tome and Principe",
+              "Small island communities emphasize strong social ties and shared traditions.",
+            ],
+            [
+              "Serbia",
+              "Cafés and long conversations play a central role in social interaction.",
+            ],
+            [
+              "Senegal",
+              "Social life is strongly shaped by hospitality, music, and community gatherings.",
+            ],
+            [
+              "Seychelles",
+              "Social interaction reflects a relaxed island lifestyle and multicultural heritage.",
+            ],
+            [
+              "Sierra Leone",
+              "Community resilience and mutual support play a key role in social life.",
+            ],
+            [
+              "Slovakia",
+              "Social life often centers on family gatherings and shared outdoor traditions.",
+            ],
+            [
+              "Slovenia",
+              "Community identity is shaped by a strong connection to local landscapes and traditions.",
+            ],
+            [
+              "Somalia",
+              "Strong clan and family ties shape social structure and daily interaction.",
+            ],
+            [
+              "Spain",
+              "Late meals and lively public spaces are key features of everyday social life.",
+            ],
+            [
+              "South Africa",
+              "Social life reflects remarkable cultural diversity and strong local community identities.",
+            ],
+            [
+              "South Sudan",
+              "Social bonds are often rooted in kinship and shared community traditions.",
+            ],
+            [
+              "Svalbard and Jan Mayen Islands",
+              "Extreme environment fosters cooperation and close social ties among a very small population.",
+            ],
+            [
+              "Sudan",
+              "Social interaction often emphasizes hospitality and extended family networks.",
+            ],
+            [
+              "Sweden",
+              "Social norms emphasize balance, consensus, and respect for personal space.",
+            ],
+            [
+              "Switzerland",
+              "Community life often reflects strong local identity tied to language and region.",
+            ],
+            [
+              "Togo",
+              "Community festivals and traditional music help maintain social cohesion.",
+            ],
+            [
+              "Tunisia",
+              "Social life blends Mediterranean influences with strong local traditions.",
+            ],
+            [
+              "Uganda",
+              "Social life is often lively and communal, with strong emphasis on family and neighbors.",
+            ],
+            [
+              "Ukraine",
+              "Social bonds are often reinforced through shared traditions, music, and strong community resilience.",
+            ],
+            [
+              "United Kingdom of Great Britain and Northern Ireland",
+              "Social life blends long-standing traditions with constantly evolving local cultures across regions.",
+            ],
+            [
+              "United Kingdom",
+              "Social life blends long-standing traditions with constantly evolving local cultures across regions.",
+            ],
+            [
+              "United Republic of Tanzania",
+              "Shared language and community traditions help connect diverse social groups.",
+            ],
+            [
+              "Western Sahara",
+              "Social life is shaped by nomadic heritage and strong communal bonds.",
+            ],
+            [
+              "Zambia",
+              "Social interaction often emphasizes cooperation and respect within extended families.",
+            ],
+            [
+              "Zimbabwe",
+              "Storytelling, music, and shared history play important roles in social life.",
+            ],
+            [
+              "Anguilla",
+              "Social life is relaxed and community-oriented, with music and beach gatherings shaping everyday connection.",
+            ],
+            [
+              "Antigua and Barbuda",
+              "Festivals and sailing traditions play a central role in social life and national identity.",
+            ],
+            [
+              "Argentina",
+              "Social life often revolves around shared meals, long conversations, and a strong café culture.",
+            ],
+            [
+              "Aruba",
+              "A multilingual society where social life blends island traditions with global influences.",
+            ],
+            [
+              "Bahamas",
+              "Community celebrations, music, and storytelling are central to social interaction.",
+            ],
+            [
+              "Barbados",
+              "Social life combines strong community ties with lively public festivals and music.",
+            ],
+            [
+              "Belize",
+              "A mix of cultures shapes social life, where language, food, and music vary by community.",
+            ],
+            [
+              "Bermuda",
+              "Small-island living fosters close social networks and strong local traditions.",
+            ],
+            [
+              "Bolivia (Plurinational State of)",
+              "Social identity is closely tied to Indigenous traditions, community rituals, and shared markets.",
+            ],
+            [
+              "Bonaire, Sint Eustatius and Saba",
+              "Social life is shaped by small-island communities with strong local ties and shared customs.",
+            ],
+            [
+              "Bouvet Island",
+              "With no permanent residents, social life exists only through temporary scientific visits.",
+            ],
+            [
+              "Brazil",
+              "Music, sport, and celebration play a major role in bringing people together socially.",
+            ],
+            [
+              "British Virgin Islands",
+              "Island life encourages close social bonds centered on community events and shared spaces.",
+            ],
+            [
+              "Canada",
+              "Social life balances individual space with strong community participation and volunteerism.",
+            ],
+            [
+              "Cayman Islands",
+              "Social interaction reflects a mix of local island culture and international influences.",
+            ],
+            [
+              "Chile",
+              "Family gatherings and shared meals are central to everyday social life.",
+            ],
+            [
+              "Colombia",
+              "Social life is lively and expressive, with music and conversation at its heart.",
+            ],
+            [
+              "Costa Rica",
+              "A relaxed approach to life shapes social interaction and community values.",
+            ],
+            [
+              "Cuba",
+              "Music, dance, and public conversation are key elements of social connection.",
+            ],
+            [
+              "Curaçao",
+              "Multilingual social life reflects a blend of Caribbean, European, and Latin influences.",
+            ],
+            [
+              "Dominica",
+              "Strong community ties are shaped by village life and shared cultural traditions.",
+            ],
+            [
+              "Dominican Republic",
+              "Music, dance, and family gatherings play a major role in social life.",
+            ],
+            [
+              "Ecuador",
+              "Social customs often blend Indigenous heritage with modern urban life.",
+            ],
+            [
+              "El Salvador",
+              "Family and neighborhood networks form the core of social life.",
+            ],
+            [
+              "Falkland Islands",
+              "A small population fosters close-knit social connections and shared routines.",
+            ],
+            [
+              "French Guiana",
+              "Social life reflects a diverse mix of cultures shaped by migration and local traditions.",
+            ],
+            [
+              "Greenland",
+              "Community life emphasizes cooperation and strong ties in a challenging environment.",
+            ],
+            [
+              "Grenada",
+              "Festivals and shared meals help maintain strong community bonds.",
+            ],
+            [
+              "Guadeloupe",
+              "Social life blends Caribbean traditions with French cultural influences.",
+            ],
+            [
+              "Guatemala",
+              "Social identity is often shaped by Indigenous traditions and local community life.",
+            ],
+            [
+              "Guyana",
+              "A multicultural society where social life reflects many cultural traditions living side by side.",
+            ],
+            [
+              "Haiti",
+              "Music, religion, and community resilience play central roles in social life.",
+            ],
+            [
+              "Honduras",
+              "Family and local community ties strongly influence social interaction.",
+            ],
+            [
+              "Jamaica",
+              "Music and expressive language are powerful forces in everyday social life.",
+            ],
+            [
+              "Martinique",
+              "Social life reflects a blend of Caribbean traditions and French cultural life.",
+            ],
+            [
+              "Mexico",
+              "Social life centers on family, festivals, and shared public celebrations.",
+            ],
+            [
+              "Montserrat",
+              "A small population encourages strong community bonds and shared identity.",
+            ],
+            [
+              "Nicaragua",
+              "Community life often revolves around family, festivals, and shared traditions.",
+            ],
+            [
+              "Panama",
+              "Social life reflects its role as a crossroads of cultures and trade.",
+            ],
+            [
+              "Paraguay",
+              "Bilingualism and strong family networks shape everyday social interaction.",
+            ],
+            [
+              "Peru",
+              "Social customs often blend ancient traditions with modern urban culture.",
+            ],
+            [
+              "Puerto Rico",
+              "Music, family gatherings, and neighborhood life are central to social identity.",
+            ],
+            [
+              "Saint Barthélemy",
+              "Social life mixes small-island community with an international atmosphere.",
+            ],
+            [
+              "Saint Kitts and Nevis",
+              "Close-knit communities emphasize shared celebrations and island traditions.",
+            ],
+            [
+              "Saint Lucia",
+              "Social life is shaped by music, festivals, and strong neighborhood ties.",
+            ],
+            [
+              "Saint Martin (French Part)",
+              "Daily social life crosses cultures and borders in a shared island community.",
+            ],
+            [
+              "Saint Pierre and Miquelon",
+              "A small population maintains close social bonds rooted in shared heritage.",
+            ],
+            [
+              "Saint Vincent and the Grenadines",
+              "Community life is closely tied to island traditions and shared celebrations.",
+            ],
+            [
+              "Sint Maarten (Dutch part)",
+              "Social interaction reflects a blend of Caribbean culture and international tourism.",
+            ],
+            [
+              "South Georgia and the South Sandwich Islands",
+              "With no permanent residents, social life exists only within temporary research teams.",
+            ],
+            [
+              "Suriname",
+              "A highly multicultural society where social life blends many languages and traditions.",
+            ],
+            [
+              "Trinidad and Tobago",
+              "Carnival culture highlights creativity, music, and social expression.",
+            ],
+            [
+              "Turks and Caicos Islands",
+              "Small-island communities foster close social ties and shared public life.",
+            ],
+            [
+              "United States of America",
+              "Social life varies widely but often centers on local communities and shared interests.",
+            ],
+            [
+              "United States Virgin Islands",
+              "Social life blends Caribbean traditions with American cultural influences.",
+            ],
+            [
+              "Uruguay",
+              "Social interaction often revolves around shared meals, conversation, and community spaces.",
+            ],
+            [
+              "Venezuela (Bolivarian Republic of)",
+              "Music, humor, and strong personal relationships shape everyday social life.",
+            ],
+          ]);
+
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
@@ -592,7 +1543,7 @@
               target.closest(".country");
             if (!isShapeClick) {
               clearSelections();
-              updateSelectionLabel("None");
+              setSelectionDisplay({ label: "None" });
             }
           });
 
@@ -635,7 +1586,11 @@
               .on("click", function (event, d) {
                 clearSelections();
                 d3.select(this).classed("is-selected", true);
-                updateSelectionLabel(d.properties.name || "Unknown country");
+                const countryName = d.properties.name || "Unknown country";
+                setSelectionDisplay({
+                  label: countryName,
+                  fact: getCountryFact(countryName),
+                });
               });
           }
 
@@ -678,7 +1633,11 @@
                     maxScale: useEuropeZoom ? 9 : 8,
                   });
                 }
-                updateSelectionLabel(`${d.name} (region)`);
+                const selectionLabel = `${d.name} (region)`;
+                setSelectionDisplay({
+                  label: selectionLabel,
+                  fact: getSelectionFact({ name: d.name, kind: "region" }),
+                });
               });
 
             regionLabelsGroup
@@ -793,7 +1752,11 @@
                         ? -150
                         : 0,
                 });
-                updateSelectionLabel(`${d.name} (sub-region)`);
+                const selectionLabel = `${d.name} (sub-region)`;
+                setSelectionDisplay({
+                  label: selectionLabel,
+                  fact: getSelectionFact({ name: d.name, kind: "subregion" }),
+                });
               });
 
             subregionLabelsGroup
@@ -838,7 +1801,11 @@
                 d3.select(this).classed("is-selected", true);
                 const metadata = subregionByNumeric.get(normalizeNumeric(d.id));
                 const subregionName = metadata?.subregion_name || subregion.name;
-                updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
+                const countryName = d.properties.name || "Unknown";
+                setSelectionDisplay({
+                  label: `${countryName} (${subregionName})`,
+                  fact: getCountryFact(countryName),
+                });
               });
 
             countryLabelsGroup
@@ -916,15 +1883,38 @@
             subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
             subregionCountriesGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
+            if (!options.keepRegion && !options.keepSubregions) {
+              setSelectionDisplay({ label: "None" });
+            }
           }
 
-          function updateSelectionLabel(text) {
-            d3.select("#selected-country").text(`Selected: ${text}`);
+          function setSelectionDisplay({ label, fact } = {}) {
+            const selection = label ?? "None";
+            const factText = fact ? `<br><span>${fact}</span>` : "";
+            d3.select("#selected-country").html(`Selected: ${selection}${factText}`);
           }
 
+          function getSelectionFact(selection) {
+            if (!selection) {
+              return "";
+            }
+            const factLookup =
+              selection.kind === "region"
+                ? regionFacts.get(selection.name)
+                : subregionFacts.get(selection.name);
+            if (!factLookup) {
+              return "";
+            }
+            return `${selection.name} (${factLookup.code}) — ${factLookup.fact}`;
+          }
+
+          function getCountryFact(countryName) {
+            return countryFacts.get(countryName) ?? "";
+          }
 
           drawCountries();
           drawRegions();
+          setSelectionDisplay({ label: "None" });
         }
       );
     </script>
