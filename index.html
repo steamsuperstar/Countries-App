@@ -461,6 +461,11 @@
           region_name: row["Region Name"] ?? row.region_name,
           subregion_code: row["Sub-region Code"] ?? row.subregion_code,
           subregion_name: row["Sub-region Name"] ?? row.subregion_name,
+          cldr_name: row["CLDR display name"] ?? row.cldr_name,
+          english_short: row["UNTERM English Short"] ?? row.english_short,
+          english_formal: row["UNTERM English Formal"] ?? row.english_formal,
+          official_name_en: row["official_name_en"] ?? row.official_name_en,
+          global_name: row["Global Name"] ?? row.global_name,
         };
       }
 
@@ -1306,7 +1311,7 @@
             ],
             [
               "Bolivia (Plurinational State of)",
-              "Social identity is closely tied to Indigenous traditions, community rituals, and shared markets.",
+              "Social life is strongly shaped by Indigenous traditions, local markets, and community festivals that bring people together.",
             ],
             [
               "Bonaire, Sint Eustatius and Saba",
@@ -1370,7 +1375,7 @@
             ],
             [
               "Falkland Islands",
-              "A small population fosters close-knit social connections and shared routines.",
+              "A small population fosters close-knit social connections where community events and shared routines matter greatly.",
             ],
             [
               "French Guiana",
@@ -1470,7 +1475,7 @@
             ],
             [
               "South Georgia and the South Sandwich Islands",
-              "With no permanent residents, social life exists only within temporary research teams.",
+              "With no permanent residents, social life exists only within small, temporary research and support teams who rely on close cooperation.",
             ],
             [
               "Suriname",
@@ -1498,7 +1503,7 @@
             ],
             [
               "Venezuela (Bolivarian Republic of)",
-              "Music, humor, and strong personal relationships shape everyday social life.",
+              "Music, humor, and strong personal relationships play a central role in everyday social interaction.",
             ],
             [
               "Afghanistan",
@@ -1722,7 +1727,7 @@
             ],
             [
               "Cook Islands",
-              "Social life is strongly community-focused, with extended families and shared celebrations at its core.",
+              "Social life is centered on extended family networks, where shared meals, music, and community celebrations strengthen everyday bonds.",
             ],
             [
               "Fiji",
@@ -1766,7 +1771,7 @@
             ],
             [
               "Niue",
-              "A very small population creates strong social ties both on the island and with family abroad.",
+              "A very small population fosters close social ties both on the island and across a wide diaspora abroad.",
             ],
             [
               "Norfolk Island",
@@ -1842,7 +1847,7 @@
             ],
             [
               "Cook Islands (the)",
-              "Social life is strongly community-focused, with extended families and shared celebrations at its core.",
+              "Social life is centered on extended family networks, where shared meals, music, and community celebrations strengthen everyday bonds.",
             ],
             [
               "Democratic People's Republic of Korea (the)",
@@ -1862,7 +1867,7 @@
             ],
             [
               "Holy See (the)",
-              "Social life centers on religious tradition and international exchange rather than a resident civilian population.",
+              "Social interaction revolves around religious tradition and international exchange rather than a typical residential community.",
             ],
             [
               "Lao People's Democratic Republic (the)",
@@ -1898,7 +1903,7 @@
             ],
             [
               "State of Palestine (the)",
-              "Strong family ties and community solidarity play a central role in social life.",
+              "Strong family connections and community solidarity play a central role in everyday social life.",
             ],
             [
               "Sudan (the)",
@@ -1925,6 +1930,134 @@
               "Social life varies widely but often centers on local communities and shared interests.",
             ],
           ]);
+          const countryAliases = new Map([
+            ["S. Geo. and the Is.", "South Georgia and the South Sandwich Islands"],
+            ["Falkland Is.", "Falkland Islands"],
+            ["Bolivia", "Bolivia (Plurinational State of)"],
+            ["Venezuela", "Venezuela (Bolivarian Republic of)"],
+          ]);
+          const countryLeadInPatterns = [
+            /^United Republic of /i,
+            /^Republic of /i,
+            /^Democratic Republic of /i,
+            /^State of /i,
+            /^Plurinational State of /i,
+            /^Bolivarian Republic of /i,
+            /^Federated States of /i,
+            /^Islamic Republic of /i,
+            /^People's Republic of /i,
+          ];
+          const normalizedCountryFacts = new Map();
+          const countryCodeByName = new Map();
+          const normalizedCountryCodeByName = new Map();
+
+          function getCountryNameCandidates(row) {
+            return [
+              row.cldr_name,
+              row.english_short,
+              row.english_formal,
+              row.official_name_en,
+              row.global_name,
+              row.name,
+            ].filter(Boolean);
+          }
+
+          function getCountryNameVariants(name) {
+            const variants = new Set([name]);
+            const withoutArticle = name.replace(/^the\s+/i, "").trim();
+            variants.add(withoutArticle);
+            const withoutTheParen = name.replace(/\s*\(the\)\s*/gi, " ").trim();
+            variants.add(withoutTheParen);
+            const withoutParenthetical = name
+              .replace(/\s*\([^)]*\)\s*/g, " ")
+              .replace(/\s+/g, " ")
+              .trim();
+            variants.add(withoutParenthetical);
+            Array.from(variants).forEach((variant) => {
+              countryLeadInPatterns.forEach((pattern) => {
+                const stripped = variant.replace(pattern, "").trim();
+                if (stripped) {
+                  variants.add(stripped);
+                }
+              });
+            });
+            return Array.from(variants);
+          }
+
+          function normalizeCountryName(name) {
+            if (!name) {
+              return "";
+            }
+            const withoutDiacritics = name
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "");
+            const expanded = withoutDiacritics
+              .replace(/\bS\.\b/gi, "South")
+              .replace(/\bN\.\b/gi, "North")
+              .replace(/\bE\.\b/gi, "East")
+              .replace(/\bW\.\b/gi, "West")
+              .replace(/\bEq\.\b/gi, "Equatorial")
+              .replace(/\bDem\.\b/gi, "Democratic")
+              .replace(/\bRep\.\b/gi, "Republic")
+              .replace(/\bFed\.\b/gi, "Federated")
+              .replace(/\bSt\.\b/gi, "Saint")
+              .replace(/\bIs\.\b/gi, "Islands")
+              .replace(/\bIsl\.\b/gi, "Islands");
+            const tokens = expanded
+              .replace(/[^a-zA-Z0-9 ]/g, " ")
+              .toLowerCase()
+              .split(/\s+/)
+              .filter(Boolean)
+              .filter((token) => !["of", "the", "and"].includes(token));
+            return tokens.join(" ");
+          }
+
+          countryCodes.forEach((row) => {
+            const numeric = normalizeNumeric(row.numeric);
+            if (!numeric) {
+              return;
+            }
+            getCountryNameCandidates(row).forEach((name) => {
+              if (!countryCodeByName.has(name)) {
+                countryCodeByName.set(name, numeric);
+              }
+              const normalizedKey = normalizeCountryName(name);
+              if (normalizedKey && !normalizedCountryCodeByName.has(normalizedKey)) {
+                normalizedCountryCodeByName.set(normalizedKey, numeric);
+              }
+            });
+          });
+
+          countryFacts.forEach((fact, name) => {
+            getCountryNameVariants(name).forEach((variant) => {
+              const key = normalizeCountryName(variant);
+              if (key && !normalizedCountryFacts.has(key)) {
+                normalizedCountryFacts.set(key, fact);
+              }
+            });
+          });
+
+          function getCountryNumeric(countryName) {
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            return (
+              countryCodeByName.get(canonicalName) ??
+              normalizedCountryCodeByName.get(normalizeCountryName(canonicalName)) ??
+              ""
+            );
+          }
+
+          const missingCountryCodes = [];
+          countryFacts.forEach((_, name) => {
+            if (!getCountryNumeric(name)) {
+              missingCountryCodes.push(name);
+            }
+          });
+          if (missingCountryCodes.length) {
+            console.warn(
+              "Missing ISO3166-1 numeric codes for country facts:",
+              missingCountryCodes
+            );
+          }
 
           // -----------------------------
           // 4) Draw layers
@@ -2329,7 +2462,16 @@
           }
 
           function getCountryFact(countryName) {
-            return countryFacts.get(countryName) ?? "";
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            const fact =
+              countryFacts.get(canonicalName) ??
+              normalizedCountryFacts.get(normalizeCountryName(canonicalName)) ??
+              "";
+            if (!fact) {
+              return "";
+            }
+            const numeric = getCountryNumeric(canonicalName);
+            return numeric ? `${fact} (ISO 3166-1 numeric: ${numeric})` : fact;
           }
 
           drawCountries();
