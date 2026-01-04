@@ -461,6 +461,11 @@
           region_name: row["Region Name"] ?? row.region_name,
           subregion_code: row["Sub-region Code"] ?? row.subregion_code,
           subregion_name: row["Sub-region Name"] ?? row.subregion_name,
+          cldr_name: row["CLDR display name"] ?? row.cldr_name,
+          english_short: row["UNTERM English Short"] ?? row.english_short,
+          english_formal: row["UNTERM English Formal"] ?? row.english_formal,
+          official_name_en: row["official_name_en"] ?? row.official_name_en,
+          global_name: row["Global Name"] ?? row.global_name,
         };
       }
 
@@ -1943,6 +1948,19 @@
             /^People's Republic of /i,
           ];
           const normalizedCountryFacts = new Map();
+          const countryCodeByName = new Map();
+          const normalizedCountryCodeByName = new Map();
+
+          function getCountryNameCandidates(row) {
+            return [
+              row.cldr_name,
+              row.english_short,
+              row.english_formal,
+              row.official_name_en,
+              row.global_name,
+              row.name,
+            ].filter(Boolean);
+          }
 
           function getCountryNameVariants(name) {
             const variants = new Set([name]);
@@ -1994,6 +2012,22 @@
             return tokens.join(" ");
           }
 
+          countryCodes.forEach((row) => {
+            const numeric = normalizeNumeric(row.numeric);
+            if (!numeric) {
+              return;
+            }
+            getCountryNameCandidates(row).forEach((name) => {
+              if (!countryCodeByName.has(name)) {
+                countryCodeByName.set(name, numeric);
+              }
+              const normalizedKey = normalizeCountryName(name);
+              if (normalizedKey && !normalizedCountryCodeByName.has(normalizedKey)) {
+                normalizedCountryCodeByName.set(normalizedKey, numeric);
+              }
+            });
+          });
+
           countryFacts.forEach((fact, name) => {
             getCountryNameVariants(name).forEach((variant) => {
               const key = normalizeCountryName(variant);
@@ -2002,6 +2036,28 @@
               }
             });
           });
+
+          function getCountryNumeric(countryName) {
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            return (
+              countryCodeByName.get(canonicalName) ??
+              normalizedCountryCodeByName.get(normalizeCountryName(canonicalName)) ??
+              ""
+            );
+          }
+
+          const missingCountryCodes = [];
+          countryFacts.forEach((_, name) => {
+            if (!getCountryNumeric(name)) {
+              missingCountryCodes.push(name);
+            }
+          });
+          if (missingCountryCodes.length) {
+            console.warn(
+              "Missing ISO3166-1 numeric codes for country facts:",
+              missingCountryCodes
+            );
+          }
 
           // -----------------------------
           // 4) Draw layers
@@ -2407,12 +2463,15 @@
 
           function getCountryFact(countryName) {
             const canonicalName = countryAliases.get(countryName) ?? countryName;
-            const directFact = countryFacts.get(canonicalName);
-            if (directFact) {
-              return directFact;
+            const fact =
+              countryFacts.get(canonicalName) ??
+              normalizedCountryFacts.get(normalizeCountryName(canonicalName)) ??
+              "";
+            if (!fact) {
+              return "";
             }
-            const normalizedKey = normalizeCountryName(canonicalName);
-            return normalizedCountryFacts.get(normalizedKey) ?? "";
+            const numeric = getCountryNumeric(canonicalName);
+            return numeric ? `${fact} (ISO 3166-1 numeric: ${numeric})` : fact;
           }
 
           drawCountries();
