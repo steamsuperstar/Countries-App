@@ -3799,29 +3799,36 @@
             languages,
           } = {}) {
             const selection = label ?? "None";
-            const textLines = [];
-            if (fact) {
-              textLines.push(`<span>${fact}</span>`);
-            }
-            if (formalName) {
-              textLines.push(`<span>Formally ${formalName}</span>`);
-            }
+            const detailLines = [];
             if (capital) {
-              textLines.push(`<span>Capital: ${capital}</span>`);
-            }
-            if (currencyName) {
-              textLines.push(`<span>Currency: ${currencyName}</span>`);
+              detailLines.push(`<span>Capital: ${capital}</span>`);
             }
             if (languages) {
-              textLines.push(`<span>Languages: ${languages}</span>`);
+              detailLines.push(`<span>Languages: ${languages}</span>`);
             }
-            const extraText = textLines.length ? `<br>${textLines.join("<br>")}` : "";
+            if (currencyName) {
+              detailLines.push(`<span>Currency: ${currencyName}</span>`);
+            }
+            const selectionLine =
+              formalName && selection !== "None"
+                ? `Selected: ${selection}, formally ${formalName}`
+                : `Selected: ${selection}`;
+            const detailText = detailLines.length
+              ? `<br>${detailLines.join("<br>")}`
+              : "";
+            const factLine = fact ? `<span>${fact}</span>` : "";
+            const factText =
+              factLine && (detailLines.length || selection !== "None")
+                ? `<br><br>${factLine}`
+                : factLine
+                  ? `<br>${factLine}`
+                  : "";
             d3.select("#selected-country")
               .classed(
                 "is-expanded",
-                Boolean(formalName || capital || currencyName || languages)
+                Boolean(formalName || capital || currencyName || languages || fact)
               )
-              .html(`Selected: ${selection}${extraText}`);
+              .html(`${selectionLine}${detailText}${factText}`);
           }
 
           function getSelectionFact(selection) {
@@ -3849,10 +3856,7 @@
             if (!entry?.fact) {
               return "";
             }
-            const numeric = entry.code || numericKey || getCountryNumeric(canonicalName);
-            return numeric
-              ? `${entry.fact} (ISO 3166-1 numeric: ${numeric})`
-              : entry.fact;
+            return entry.fact;
           }
 
           drawCountries();
