@@ -132,6 +132,8 @@
         position: absolute;
         left: 12px;
         bottom: 12px;
+        width: min(560px, 92vw);
+        line-height: 1.4;
       }
 
       .facts-panel {
@@ -140,32 +142,7 @@
         gap: 12px;
       }
 
-      .fact-card {
-        background: #ffffff;
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
-      }
-
-      .fact-card h4 {
-        margin: 0 0 8px;
-        font-size: 1rem;
-        color: #0f172a;
-      }
-
-      .fact-card p {
-        margin: 0;
-        font-size: 0.95rem;
-        color: #334155;
-      }
-
-      .fact-card .selection-text {
-        margin-bottom: 10px;
-        font-weight: 600;
-        color: #1f2933;
-      }
-
-      .fact-card .fact-details.is-hidden {
+      .facts-panel {
         display: none;
       }
     </style>
@@ -174,15 +151,9 @@
     <div class="map-card">
       <div class="map-shell">
         <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
+        <div id="selected-country" class="selected-label">Selected: None</div>
       </div>
       <section class="facts-panel" aria-label="UN M49 fun social facts">
-        <article id="fact-card" class="fact-card">
-          <div id="selection-text" class="selection-text">Selected: None</div>
-          <div id="fact-details" class="fact-details is-hidden">
-            <h4 id="fact-title"></h4>
-            <p id="fact-body"></p>
-          </div>
-        </article>
       </section>
     </div>
 
@@ -865,8 +836,7 @@
               target.closest(".country");
             if (!isShapeClick) {
               clearSelections();
-              updateSelectionLabel("None");
-              updateFactPanel(null);
+              setSelectionDisplay({ label: "None" });
             }
           });
 
@@ -909,7 +879,7 @@
               .on("click", function (event, d) {
                 clearSelections();
                 d3.select(this).classed("is-selected", true);
-                updateSelectionLabel(d.properties.name || "Unknown country");
+                setSelectionDisplay({ label: d.properties.name || "Unknown country" });
               });
           }
 
@@ -952,8 +922,11 @@
                     maxScale: useEuropeZoom ? 9 : 8,
                   });
                 }
-                updateSelectionLabel(`${d.name} (region)`);
-                updateFactPanel({ name: d.name, kind: "region" });
+                const selectionLabel = `${d.name} (region)`;
+                setSelectionDisplay({
+                  label: selectionLabel,
+                  fact: getSelectionFact({ name: d.name, kind: "region" }),
+                });
               });
 
             regionLabelsGroup
@@ -1068,8 +1041,11 @@
                         ? -150
                         : 0,
                 });
-                updateSelectionLabel(`${d.name} (sub-region)`);
-                updateFactPanel({ name: d.name, kind: "subregion" });
+                const selectionLabel = `${d.name} (sub-region)`;
+                setSelectionDisplay({
+                  label: selectionLabel,
+                  fact: getSelectionFact({ name: d.name, kind: "subregion" }),
+                });
               });
 
             subregionLabelsGroup
@@ -1114,7 +1090,9 @@
                 d3.select(this).classed("is-selected", true);
                 const metadata = subregionByNumeric.get(normalizeNumeric(d.id));
                 const subregionName = metadata?.subregion_name || subregion.name;
-                updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
+                setSelectionDisplay({
+                  label: `${d.properties.name || "Unknown"} (${subregionName})`,
+                });
               });
 
             countryLabelsGroup
@@ -1193,48 +1171,33 @@
             subregionCountriesGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
             if (!options.keepRegion && !options.keepSubregions) {
-              updateFactPanel(null);
+              setSelectionDisplay({ label: "None" });
             }
           }
 
-          function updateSelectionLabel(text) {
-            d3.select("#selection-text").text(`Selected: ${text}`);
+          function setSelectionDisplay({ label, fact } = {}) {
+            const selection = label ?? "None";
+            const factText = fact ? `<br><span>${fact}</span>` : "";
+            d3.select("#selected-country").html(`Selected: ${selection}${factText}`);
           }
 
-          function updateFactPanel(selection) {
-            const factCard = d3.select("#fact-card");
-            const factTitle = d3.select("#fact-title");
-            const factBody = d3.select("#fact-body");
-            const factDetails = d3.select("#fact-details");
-
+          function getSelectionFact(selection) {
             if (!selection) {
-              factDetails.classed("is-hidden", true);
-              factTitle.text("");
-              factBody.text("");
-              return;
+              return "";
             }
-
             const factLookup =
               selection.kind === "region"
                 ? regionFacts.get(selection.name)
                 : subregionFacts.get(selection.name);
-
             if (!factLookup) {
-              factDetails.classed("is-hidden", true);
-              factTitle.text("");
-              factBody.text("");
-              return;
+              return "";
             }
-
-            const label = `${selection.name} (${factLookup.code})`;
-            factTitle.text(label);
-            factBody.text(factLookup.fact);
-            factDetails.classed("is-hidden", false);
+            return `${selection.name} (${factLookup.code}) — ${factLookup.fact}`;
           }
 
           drawCountries();
           drawRegions();
-          updateFactPanel(null);
+          setSelectionDisplay({ label: "None" });
         }
       );
     </script>
