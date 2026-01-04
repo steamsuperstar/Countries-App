@@ -159,7 +159,13 @@
         color: #334155;
       }
 
-      .fact-card.is-hidden {
+      .fact-card .selection-text {
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #1f2933;
+      }
+
+      .fact-card .fact-details.is-hidden {
         display: none;
       }
     </style>
@@ -168,12 +174,14 @@
     <div class="map-card">
       <div class="map-shell">
         <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
-        <div id="selected-country" class="selected-label">Selected: None</div>
       </div>
       <section class="facts-panel" aria-label="UN M49 fun social facts">
-        <article id="fact-card" class="fact-card is-hidden">
-          <h4 id="fact-title"></h4>
-          <p id="fact-body"></p>
+        <article id="fact-card" class="fact-card">
+          <div id="selection-text" class="selection-text">Selected: None</div>
+          <div id="fact-details" class="fact-details is-hidden">
+            <h4 id="fact-title"></h4>
+            <p id="fact-body"></p>
+          </div>
         </article>
       </section>
     </div>
@@ -1190,16 +1198,17 @@
           }
 
           function updateSelectionLabel(text) {
-            d3.select("#selected-country").text(`Selected: ${text}`);
+            d3.select("#selection-text").text(`Selected: ${text}`);
           }
 
           function updateFactPanel(selection) {
             const factCard = d3.select("#fact-card");
             const factTitle = d3.select("#fact-title");
             const factBody = d3.select("#fact-body");
+            const factDetails = d3.select("#fact-details");
 
             if (!selection) {
-              factCard.classed("is-hidden", true);
+              factDetails.classed("is-hidden", true);
               factTitle.text("");
               factBody.text("");
               return;
@@ -1211,7 +1220,7 @@
                 : subregionFacts.get(selection.name);
 
             if (!factLookup) {
-              factCard.classed("is-hidden", true);
+              factDetails.classed("is-hidden", true);
               factTitle.text("");
               factBody.text("");
               return;
@@ -1220,7 +1229,7 @@
             const label = `${selection.name} (${factLookup.code})`;
             factTitle.text(label);
             factBody.text(factLookup.fact);
-            factCard.classed("is-hidden", false);
+            factDetails.classed("is-hidden", false);
           }
 
           drawCountries();
