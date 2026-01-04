@@ -89,6 +89,27 @@
         fill: #0ea5e9;
       }
 
+      .label {
+        fill: #1d3557;
+        text-anchor: middle;
+        pointer-events: none;
+      }
+
+      .region-label {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .subregion-label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .country-label {
+        font-size: 3px;
+        font-weight: 500;
+      }
+
       .is-hidden {
         display: none;
       }
@@ -103,18 +124,6 @@
     </style>
   </head>
   <body>
-    <h1>Equal Earth Projection: Interactive Countries Map</h1>
-    <p>
-      This beginner-friendly demo loads Natural Earth country boundaries using
-      <strong>d3@7</strong> and <strong>topojson-client</strong>, then renders them with the
-      <strong>Equal Earth</strong> projection. Click a country to highlight it and see its name.
-    </p>
-    <p>
-      We also group the world into top-level <em>regions</em> (Africa, Americas, Asia, Europe,
-      Oceania). Click a region to reveal its sub-regions, then click a sub-region to reveal its
-      countries.
-    </p>
-
     <div class="map-card">
       <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
       <div id="selected-country" class="selected-label">Selected: None</div>
@@ -384,6 +393,7 @@
       // 1) Basic SVG setup
       // -----------------------------
       const svg = d3.select("#world-map");
+      const mapGroup = svg.append("g").attr("class", "map-root");
       const width = 960;
       const height = 520;
 
@@ -529,14 +539,66 @@
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
-          const countriesGroup = svg.append("g").attr("class", "countries-layer");
-          const regionGroup = svg.append("g").attr("class", "regions-layer");
-          const subregionGroup = svg
+          const countriesGroup = mapGroup.append("g").attr("class", "countries-layer");
+          const regionGroup = mapGroup.append("g").attr("class", "regions-layer");
+          const subregionGroup = mapGroup
             .append("g")
             .attr("class", "subregions-layer is-hidden");
-          const subregionCountriesGroup = svg
+          const subregionCountriesGroup = mapGroup
             .append("g")
             .attr("class", "subregion-countries-layer is-hidden");
+          const regionLabelsGroup = mapGroup
+            .append("g")
+            .attr("class", "region-labels-layer");
+          const subregionLabelsGroup = mapGroup
+            .append("g")
+            .attr("class", "subregion-labels-layer is-hidden");
+          const countryLabelsGroup = mapGroup
+            .append("g")
+            .attr("class", "country-labels-layer is-hidden");
+          const zoom = d3
+            .zoom()
+            .scaleExtent([1, 8])
+            .on("zoom", (event) => {
+              mapGroup.attr("transform", event.transform);
+            });
+
+          svg.call(zoom);
+          svg.on("click", (event) => {
+            if (event.defaultPrevented) return;
+            const target = event.target;
+            const isShapeClick =
+              target.closest(".region") ||
+              target.closest(".subregion") ||
+              target.closest(".country");
+            if (!isShapeClick) {
+              clearSelections();
+              updateSelectionLabel("None");
+            }
+          });
+
+          function zoomToGeometry(geometry, options = {}) {
+            const [[x0, y0], [x1, y1]] = path.bounds(geometry);
+            const dx = x1 - x0;
+            const dy = y1 - y0;
+            const x = (x0 + x1) / 2;
+            const y = (y0 + y1) / 2;
+            const padding = options.padding ?? 0.9;
+            const maxScale = options.maxScale ?? 8;
+            const scale = Math.min(maxScale, padding / Math.max(dx / width, dy / height));
+            const translate = [width / 2 - scale * x, height / 2 - scale * y];
+            svg
+              .transition()
+              .duration(options.duration ?? 450)
+              .call(
+                zoom.transform,
+                d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+              );
+          }
+
+          function resetZoom() {
+            svg.transition().duration(450).call(zoom.transform, d3.zoomIdentity);
+          }
 
           function drawCountries() {
             const baseCountries = otherCountries.length ? otherCountries : countries;
@@ -560,6 +622,7 @@
               regionGroup.raise();
               countriesGroup.lower();
               countriesGroup.classed("is-hidden", true);
+              regionLabelsGroup.raise();
             } else {
               countriesGroup.classed("is-hidden", false);
             }
@@ -571,6 +634,7 @@
               .attr("class", "region")
               .attr("d", (d) => path(d.geometry))
               .on("click", function (event, d) {
+                event.stopPropagation();
                 clearSelections();
                 d3.select(this).classed("is-selected", true);
                 drawSubregions(d);
@@ -578,8 +642,25 @@
                 subregionGroup.raise();
                 regionGroup.lower();
                 subregionCountriesGroup.classed("is-hidden", true);
+                regionLabelsGroup.classed("is-hidden", true);
+                subregionLabelsGroup.classed("is-hidden", false);
+                countryLabelsGroup.classed("is-hidden", true);
+                subregionLabelsGroup.raise();
+                if (d.name !== "Oceania") {
+                  zoomToGeometry(d.geometry, { duration: 450 });
+                }
                 updateSelectionLabel(`${d.name} (region)`);
               });
+
+            regionLabelsGroup
+              .classed("is-hidden", !hasRegions)
+              .selectAll("text")
+              .data(regions, (d) => d.code)
+              .join("text")
+              .attr("class", "label region-label")
+              .attr("x", (d) => path.centroid(d.geometry)[0])
+              .attr("y", (d) => path.centroid(d.geometry)[1])
+              .text((d) => d.name);
           }
 
           // Draw each sub-region for the selected region.
@@ -591,13 +672,84 @@
               .attr("class", "subregion")
               .attr("d", (d) => path(d.geometry))
               .on("click", function (event, d) {
+                event.stopPropagation();
                 clearSelections({ keepRegion: true, keepSubregions: true });
                 d3.select(this).classed("is-selected", true);
                 drawSubregionCountries(d);
                 subregionCountriesGroup.classed("is-hidden", false);
                 subregionCountriesGroup.raise();
+                subregionLabelsGroup.classed("is-hidden", true);
+                countryLabelsGroup.classed("is-hidden", false);
+                countryLabelsGroup.raise();
+                const deepZoomSubregions = new Set(["151", "21", "54"]);
+                const isDeepZoom = deepZoomSubregions.has(String(d.code));
+                const namedZoomTargets = new Map([
+                  ["Melanesia", "Vanuatu"],
+                  ["Micronesia", "Micronesia (Federated States of)"],
+                  ["Australia and New Zealand", "Australia"],
+                  ["Western Europe", "Luxembourg"],
+                ]);
+                const targetName = namedZoomTargets.get(d.name);
+                const targetFeature = targetName
+                  ? d.features.find((feature) => feature.properties.name === targetName)
+                  : null;
+                const useDeeperZoom = d.name === "Micronesia";
+                const useShallowerZoom = d.name === "Melanesia";
+                const useWesternEuropeZoom = d.name === "Western Europe";
+                const useNorthernAmericaZoom = d.name === "Northern America";
+                zoomToGeometry(targetFeature || d.geometry, {
+                  duration: 450,
+                  padding: useWesternEuropeZoom
+                    ? 1.25
+                    : useNorthernAmericaZoom
+                      ? 1.35
+                    : useShallowerZoom
+                      ? 0.95
+                      : useDeeperZoom
+                        ? 1.35
+                        : isDeepZoom
+                          ? 1.2
+                          : 1.05,
+                  maxScale: useWesternEuropeZoom
+                    ? 12
+                    : useNorthernAmericaZoom
+                      ? 14
+                    : useShallowerZoom
+                      ? 8
+                      : useDeeperZoom
+                        ? 14
+                        : isDeepZoom
+                          ? 12
+                          : 10,
+                });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
+
+            subregionLabelsGroup
+              .classed("is-hidden", false)
+              .selectAll("text")
+              .data(region.subregions, (d) => d.code)
+              .join("text")
+              .attr("class", "label subregion-label")
+              .attr("x", (d) => {
+                const [x, y] = path.centroid(d.geometry);
+                if (d.name === "Micronesia") {
+                  const estimatedCharWidth = 7.8;
+                  return x + d.name.length * estimatedCharWidth * 2;
+                }
+                return x;
+              })
+              .attr("y", (d) => {
+                const [x, y] = path.centroid(d.geometry);
+                if (d.name === "Micronesia") {
+                  return y - 10;
+                }
+                if (d.name === "Western Europe") {
+                  return y - 12;
+                }
+                return y;
+              })
+              .text((d) => d.name);
           }
 
           // Draw sub-region countries (hidden until a sub-region is selected).
@@ -609,6 +761,7 @@
               .attr("class", "country")
               .attr("d", path)
               .on("click", function (event, d) {
+                event.stopPropagation();
                 // Keep the sub-region visible; only highlight the chosen country.
                 subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
                 d3.select(this).classed("is-selected", true);
@@ -616,6 +769,58 @@
                 const subregionName = metadata?.subregion_name || subregion.name;
                 updateSelectionLabel(`${d.properties.name || "Unknown"} (${subregionName})`);
               });
+
+            countryLabelsGroup
+              .classed("is-hidden", false)
+              .selectAll("text")
+              .data(subregion.features, (d) => d.id)
+              .join("text")
+              .attr("class", "label country-label")
+              .attr("x", (d) => {
+                const [x, y] = path.centroid(d);
+                if (d.properties.name === "France") {
+                  return x + 20;
+                }
+                const countryOffsets = new Map([
+                  ["Antigua and Barbuda", [6, -4]],
+                  ["Barbados", [6, 6]],
+                  ["Dominica", [-6, -6]],
+                  ["Grenada", [8, 8]],
+                  ["Saint Kitts and Nevis", [10, -2]],
+                  ["Saint Lucia", [6, 10]],
+                  ["Saint Vincent and the Grenadines", [10, 12]],
+                  ["Trinidad and Tobago", [12, 10]],
+                  ["Haiti", [-6, -4]],
+                  ["Dominican Republic", [10, 0]],
+                ]);
+                if (countryOffsets.has(d.properties.name)) {
+                  return x + countryOffsets.get(d.properties.name)[0];
+                }
+                return x;
+              })
+              .attr("y", (d) => {
+                const [x, y] = path.centroid(d);
+                if (d.properties.name === "France") {
+                  return y - 24;
+                }
+                const countryOffsets = new Map([
+                  ["Antigua and Barbuda", [6, -4]],
+                  ["Barbados", [6, 6]],
+                  ["Dominica", [-6, -6]],
+                  ["Grenada", [8, 8]],
+                  ["Saint Kitts and Nevis", [10, -2]],
+                  ["Saint Lucia", [6, 10]],
+                  ["Saint Vincent and the Grenadines", [10, 12]],
+                  ["Trinidad and Tobago", [12, 10]],
+                  ["Haiti", [-6, -4]],
+                  ["Dominican Republic", [10, 0]],
+                ]);
+                if (countryOffsets.has(d.properties.name)) {
+                  return y + countryOffsets.get(d.properties.name)[1];
+                }
+                return y;
+              })
+              .text((d) => d.properties.name || "");
           }
 
           // -----------------------------
@@ -626,18 +831,26 @@
             if (!options.keepRegion) {
               regionGroup.selectAll(".region").classed("is-selected", false);
               subregionGroup.classed("is-hidden", true);
+              regionLabelsGroup.classed("is-hidden", false);
+              subregionLabelsGroup.classed("is-hidden", true);
+              countryLabelsGroup.classed("is-hidden", true);
+              resetZoom();
             }
             if (!options.keepSubregions) {
               subregionGroup.selectAll(".subregion").classed("is-selected", false);
               subregionGroup.classed("is-hidden", true);
+              subregionLabelsGroup.classed("is-hidden", true);
+              countryLabelsGroup.classed("is-hidden", true);
             }
             subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
             subregionCountriesGroup.classed("is-hidden", true);
+            countryLabelsGroup.classed("is-hidden", true);
           }
 
           function updateSelectionLabel(text) {
             d3.select("#selected-country").text(`Selected: ${text}`);
           }
+
 
           drawCountries();
           drawRegions();
