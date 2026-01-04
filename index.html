@@ -138,11 +138,6 @@
         transition: width 160ms ease-in-out, min-height 160ms ease-in-out;
       }
 
-      .selected-label.is-subregion,
-      .selected-label.is-country {
-        background: transparent;
-      }
-
       .selected-label.is-expanded {
         width: min(640px, 94vw);
         min-height: 64px;
@@ -3505,7 +3500,6 @@
                 setSelectionDisplay({
                   label: selectionLabel,
                   fact: getSelectionFact({ name: d.name, kind: "region" }),
-                  kind: "region",
                 });
               });
 
@@ -3625,7 +3619,6 @@
                 setSelectionDisplay({
                   label: selectionLabel,
                   fact: getSelectionFact({ name: d.name, kind: "subregion" }),
-                  kind: "subregion",
                 });
               });
 
@@ -3678,7 +3671,6 @@
                   capital: getCountryCapital(countryName, d.id),
                   currencyName: getCountryCurrency(countryName, d.id),
                   languages: getCountryLanguages(countryName, d.id),
-                  kind: "country",
                 });
               });
 
@@ -3768,7 +3760,6 @@
             capital,
             currencyName,
             languages,
-            kind,
           } = {}) {
             const selection = label ?? "None";
             const textLines = [];
@@ -3787,8 +3778,6 @@
             const extraText = textLines.length ? `<br>${textLines.join("<br>")}` : "";
             d3.select("#selected-country")
               .classed("is-expanded", Boolean(capital || currencyName || languages))
-              .classed("is-subregion", kind === "subregion")
-              .classed("is-country", kind === "country")
               .html(`Selected: ${selection}${extraText}`);
           }
 
