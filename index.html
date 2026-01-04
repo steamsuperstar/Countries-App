@@ -799,6 +799,229 @@
             ],
           ]);
 
+          const countryFacts = new Map([
+            [
+              "Åland Islands",
+              "Social life is shaped by close-knit island communities where Swedish language and maritime traditions remain central to everyday identity.",
+            ],
+            [
+              "Albania",
+              "Hospitality is a strong social value, and guests are often treated with exceptional warmth and generosity.",
+            ],
+            [
+              "Andorra",
+              "With a small population, social connections often overlap between work, family, and community life.",
+            ],
+            [
+              "Austria",
+              "Cafés serve as important social spaces where conversation, reading, and lingering are part of daily life.",
+            ],
+            [
+              "Belarus",
+              "Family and long-standing friendships often form the backbone of social trust and support networks.",
+            ],
+            [
+              "Belgium",
+              "Social identity is closely tied to language and region, shaping food, humor, and everyday interactions.",
+            ],
+            [
+              "Bosnia and Herzegovina",
+              "Coffee culture plays a central social role, with long conversations marking friendship and hospitality.",
+            ],
+            [
+              "Bulgaria",
+              "Traditions around music, dance, and seasonal festivals remain important ways of strengthening community bonds.",
+            ],
+            [
+              "Croatia",
+              "Social life often revolves around shared meals and time spent outdoors, especially along the coast.",
+            ],
+            [
+              "Czechia",
+              "Pubs and local gathering spots are key social hubs where community life unfolds informally.",
+            ],
+            [
+              "Czech Republic",
+              "Pubs and local gathering spots are key social hubs where community life unfolds informally.",
+            ],
+            [
+              "Denmark",
+              "Everyday social life emphasizes comfort and togetherness, often summed up by the idea of hygge.",
+            ],
+            [
+              "Estonia",
+              "Digital life blends smoothly with social life, while shared traditions still anchor community identity.",
+            ],
+            [
+              "Faroe Islands",
+              "Small, remote communities place strong emphasis on mutual support and shared responsibility.",
+            ],
+            [
+              "Finland",
+              "Quiet respect for personal space coexists with deep trust in close social circles.",
+            ],
+            [
+              "France",
+              "Meals are often social rituals, where time spent together matters as much as the food itself.",
+            ],
+            [
+              "Germany",
+              "Clubs and associations play a major role in social life, bringing people together around shared interests.",
+            ],
+            [
+              "Gibraltar",
+              "Daily life reflects a blend of cultures, where social interactions easily cross linguistic and national lines.",
+            ],
+            [
+              "Greece",
+              "Conversation, food, and public spaces form the heart of social life and community connection.",
+            ],
+            [
+              "Guernsey",
+              "Island life encourages close social ties, where community events and shared history matter greatly.",
+            ],
+            [
+              "Holy See",
+              "Social life centers on religious tradition and international exchange rather than a resident population.",
+            ],
+            [
+              "Hungary",
+              "Family gatherings and shared meals are important anchors of social life.",
+            ],
+            [
+              "Iceland",
+              "A small population fosters overlapping social networks where people are often connected in multiple ways.",
+            ],
+            [
+              "Ireland",
+              "Storytelling, humor, and conversation play a central role in everyday social interaction.",
+            ],
+            [
+              "Isle of Man",
+              "Strong local identity is reinforced through community traditions and shared island history.",
+            ],
+            [
+              "Italy",
+              "Social life often unfolds in public spaces, where food, family, and conversation come together daily.",
+            ],
+            [
+              "Jersey",
+              "Community life balances local traditions with influences from both Britain and France.",
+            ],
+            [
+              "Latvia",
+              "Folk traditions and seasonal celebrations remain important expressions of social identity.",
+            ],
+            [
+              "Liechtenstein",
+              "With a small population, social and professional circles often overlap closely.",
+            ],
+            [
+              "Lithuania",
+              "Singing and cultural festivals play a meaningful role in maintaining community bonds.",
+            ],
+            [
+              "Luxembourg",
+              "Daily social life is highly multilingual, reflecting the country’s international character.",
+            ],
+            [
+              "Malta",
+              "Community life is shaped by neighborhood ties, religious festivals, and shared outdoor spaces.",
+            ],
+            [
+              "Monaco",
+              "Social life blends local community with an international population drawn by work and events.",
+            ],
+            [
+              "Montenegro",
+              "Hospitality and strong personal relationships are central to everyday social interactions.",
+            ],
+            [
+              "Netherlands",
+              "Direct communication and informal social norms shape how people interact day to day.",
+            ],
+            [
+              "North Macedonia",
+              "Music, food, and family gatherings remain key ways of maintaining social ties.",
+            ],
+            [
+              "Norway",
+              "Equality and trust strongly influence social interaction, even in informal settings.",
+            ],
+            [
+              "Poland",
+              "Family celebrations and shared traditions play a major role in social life.",
+            ],
+            [
+              "Portugal",
+              "Social life often centers on long meals and relaxed conversation with family and friends.",
+            ],
+            [
+              "Republic of Moldova",
+              "Community connections are often strengthened through shared food, hospitality, and local customs.",
+            ],
+            [
+              "Moldova",
+              "Community connections are often strengthened through shared food, hospitality, and local customs.",
+            ],
+            [
+              "Romania",
+              "Social traditions often blend rural heritage with modern urban life.",
+            ],
+            [
+              "Russian Federation",
+              "Social circles are often built on deep, long-term relationships rather than casual acquaintance.",
+            ],
+            [
+              "Russia",
+              "Social circles are often built on deep, long-term relationships rather than casual acquaintance.",
+            ],
+            [
+              "San Marino",
+              "A strong sense of shared history helps maintain close community bonds.",
+            ],
+            [
+              "Serbia",
+              "Cafés and long conversations play a central role in social interaction.",
+            ],
+            [
+              "Slovakia",
+              "Social life often centers on family gatherings and shared outdoor traditions.",
+            ],
+            [
+              "Slovenia",
+              "Community identity is shaped by a strong connection to local landscapes and traditions.",
+            ],
+            [
+              "Spain",
+              "Late meals and lively public spaces are key features of everyday social life.",
+            ],
+            [
+              "Svalbard and Jan Mayen Islands",
+              "Extreme environment fosters cooperation and close social ties among a very small population.",
+            ],
+            [
+              "Sweden",
+              "Social norms emphasize balance, consensus, and respect for personal space.",
+            ],
+            [
+              "Switzerland",
+              "Community life often reflects strong local identity tied to language and region.",
+            ],
+            [
+              "Ukraine",
+              "Social bonds are often reinforced through shared traditions, music, and strong community resilience.",
+            ],
+            [
+              "United Kingdom of Great Britain and Northern Ireland",
+              "Social life blends long-standing traditions with constantly evolving local cultures across regions.",
+            ],
+            [
+              "United Kingdom",
+              "Social life blends long-standing traditions with constantly evolving local cultures across regions.",
+            ],
+          ]);
+
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
@@ -879,7 +1102,11 @@
               .on("click", function (event, d) {
                 clearSelections();
                 d3.select(this).classed("is-selected", true);
-                setSelectionDisplay({ label: d.properties.name || "Unknown country" });
+                const countryName = d.properties.name || "Unknown country";
+                setSelectionDisplay({
+                  label: countryName,
+                  fact: getCountryFact(countryName),
+                });
               });
           }
 
@@ -1090,8 +1317,10 @@
                 d3.select(this).classed("is-selected", true);
                 const metadata = subregionByNumeric.get(normalizeNumeric(d.id));
                 const subregionName = metadata?.subregion_name || subregion.name;
+                const countryName = d.properties.name || "Unknown";
                 setSelectionDisplay({
-                  label: `${d.properties.name || "Unknown"} (${subregionName})`,
+                  label: `${countryName} (${subregionName})`,
+                  fact: getCountryFact(countryName),
                 });
               });
 
@@ -1193,6 +1422,10 @@
               return "";
             }
             return `${selection.name} (${factLookup.code}) — ${factLookup.fact}`;
+          }
+
+          function getCountryFact(countryName) {
+            return countryFacts.get(countryName) ?? "";
           }
 
           drawCountries();
