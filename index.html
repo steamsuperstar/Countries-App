@@ -723,7 +723,7 @@
                 const useNorthernAmericaZoom = d.name === "Northern America";
                 const useEasternEuropeZoom = d.name === "Eastern Europe";
                 const useMicronesiaZoom = d.name === "Micronesia";
-                const micronesiaLabelOffset = d.name.length * 7.8 * 3;
+                const micronesiaLabelOffset = d.name.length * 7.8 * 1.5;
                 zoomToGeometry(targetFeature || d.geometry, {
                   duration: 450,
                   padding: useWesternEuropeZoom
@@ -731,7 +731,7 @@
                     : useNorthernAmericaZoom
                       ? 0.95
                       : useEasternEuropeZoom
-                        ? 1.0
+                        ? 0.9
                       : useShallowerZoom
                         ? 0.95
                         : useDeeperZoom
@@ -752,8 +752,12 @@
                           : isDeepZoom
                           ? 12
                           : 10,
-                  xOffset: useMicronesiaZoom ? micronesiaLabelOffset : 0,
-                  yOffset: useNorthernAmericaZoom ? -200 : useEasternEuropeZoom ? -150 : 0,
+                  xOffset: useMicronesiaZoom
+                    ? micronesiaLabelOffset
+                    : useEasternEuropeZoom
+                      ? 60
+                      : 0,
+                  yOffset: useNorthernAmericaZoom ? -100 : useEasternEuropeZoom ? -150 : 0,
                 });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
