@@ -661,7 +661,12 @@
                 countryLabelsGroup.classed("is-hidden", true);
                 subregionLabelsGroup.raise();
                 if (d.name !== "Oceania") {
-                  zoomToGeometry(d.geometry, { duration: 450 });
+                  const useEuropeZoom = d.name === "Europe";
+                  zoomToGeometry(d.geometry, {
+                    duration: 450,
+                    padding: useEuropeZoom ? 1.15 : 0.9,
+                    maxScale: useEuropeZoom ? 9 : 8,
+                  });
                 }
                 updateSelectionLabel(`${d.name} (region)`);
               });
@@ -711,28 +716,33 @@
                 const useShallowerZoom = d.name === "Melanesia";
                 const useWesternEuropeZoom = d.name === "Western Europe";
                 const useNorthernAmericaZoom = d.name === "Northern America";
+                const useEasternEuropeZoom = d.name === "Eastern Europe";
                 zoomToGeometry(targetFeature || d.geometry, {
                   duration: 450,
                   padding: useWesternEuropeZoom
                     ? 1.25
                     : useNorthernAmericaZoom
-                      ? 1.35
-                    : useShallowerZoom
-                      ? 0.95
-                      : useDeeperZoom
-                        ? 1.35
-                        : isDeepZoom
-                          ? 1.2
-                          : 1.05,
+                      ? 1.15
+                      : useEasternEuropeZoom
+                        ? 1.2
+                      : useShallowerZoom
+                        ? 0.95
+                        : useDeeperZoom
+                          ? 1.35
+                          : isDeepZoom
+                            ? 1.2
+                            : 1.05,
                   maxScale: useWesternEuropeZoom
                     ? 12
                     : useNorthernAmericaZoom
-                      ? 14
-                    : useShallowerZoom
-                      ? 8
-                      : useDeeperZoom
-                        ? 14
-                        : isDeepZoom
+                      ? 12
+                      : useEasternEuropeZoom
+                        ? 12
+                      : useShallowerZoom
+                        ? 8
+                        : useDeeperZoom
+                          ? 14
+                          : isDeepZoom
                           ? 12
                           : 10,
                 });
