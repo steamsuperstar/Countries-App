@@ -137,24 +137,7 @@
       .facts-panel {
         padding: 20px 12px 32px;
         display: grid;
-        gap: 24px;
-      }
-
-      .facts-panel h2 {
-        margin: 0 0 8px;
-        font-size: 1.35rem;
-      }
-
-      .facts-panel h3 {
-        margin: 0 0 12px;
-        font-size: 1.1rem;
-        color: #1f2933;
-      }
-
-      .facts-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 16px;
+        gap: 12px;
       }
 
       .fact-card {
@@ -176,9 +159,8 @@
         color: #334155;
       }
 
-      .fact-section {
-        display: grid;
-        gap: 12px;
+      .fact-card.is-hidden {
+        display: none;
       }
     </style>
   </head>
@@ -189,213 +171,10 @@
         <div id="selected-country" class="selected-label">Selected: None</div>
       </div>
       <section class="facts-panel" aria-label="UN M49 fun social facts">
-        <div class="fact-section">
-          <h2>🌍 UN M49 Regions — Fun Social Facts</h2>
-          <div class="facts-grid">
-            <article class="fact-card">
-              <h4>Africa (002)</h4>
-              <p>
-                Africa is home to the youngest population in the world — more than 60% of
-                Africans are under 25, shaping global music, fashion, and digital culture.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Americas (019)</h4>
-              <p>
-                The Americas contain every major world religion, yet many of the region’s most
-                influential cultural movements (jazz, hip-hop, salsa) originated locally.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Asia (142)</h4>
-              <p>
-                Asia contains more languages than any other region, with over 2,300 living
-                languages spoken across the continent.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Europe (150)</h4>
-              <p>
-                Europe has the highest number of international borders per square kilometer,
-                which helps explain its dense mix of languages, cuisines, and identities.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Oceania (009)</h4>
-              <p>
-                Oceania’s societies are among the most maritime-oriented cultures on Earth, with
-                navigation traditions that predate modern instruments.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Antarctica (010)</h4>
-              <p>
-                Antarctica has no permanent population, yet is governed cooperatively by dozens
-                of countries under international treaties — a rare example of peaceful global
-                governance.
-              </p>
-            </article>
-          </div>
-        </div>
-        <div class="fact-section">
-          <h2>🌍 UN M49 Sub-Regions — Fun Social Facts</h2>
-          <div class="facts-grid">
-            <article class="fact-card">
-              <h4>Northern Africa (015)</h4>
-              <p>
-                Arabic, Amazigh (Berber), French, and English influences intersect here, making
-                it one of the world’s most linguistically blended regions.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Western Africa (011)</h4>
-              <p>
-                Western Africa is a global music powerhouse, influencing jazz, blues, reggae,
-                and Afrobeat worldwide.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Middle Africa (017)</h4>
-              <p>
-                Extended family networks play a central social role, often functioning as
-                economic safety nets where formal systems are limited.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Eastern Africa (014)</h4>
-              <p>
-                This region is considered a cradle of humanity and remains one of the world’s
-                most linguistically diverse areas.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Southern Africa (018)</h4>
-              <p>
-                Southern Africa has some of the strongest traditions of oral storytelling,
-                where history is preserved through spoken narrative.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Northern America (021)</h4>
-              <p>
-                High levels of immigration have made Northern America one of the most culturally
-                plural regions in the world.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Central America (013)</h4>
-              <p>
-                Community festivals blending Indigenous, African, and European traditions are
-                central to social life.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Caribbean (029)</h4>
-              <p>
-                Despite its small land area, the Caribbean has had an outsized influence on
-                global music, food, and sports.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>South America (005)</h4>
-              <p>
-                South America hosts some of the world’s strongest regional identities, where
-                local culture often matters more than national borders.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Central Asia (143)</h4>
-              <p>
-                Hospitality is a deeply rooted social value — guests are traditionally treated
-                as honored visitors, regardless of social status.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Eastern Asia (030)</h4>
-              <p>
-                Collective harmony and respect for elders are core social values that strongly
-                influence education and work culture.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Southern Asia (034)</h4>
-              <p>
-                This sub-region has some of the largest and most vibrant family networks in the
-                world, often spanning multiple generations under one roof.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>South-eastern Asia (035)</h4>
-              <p>
-                Markets and street food are central social spaces, acting as daily meeting
-                points for communities.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Western Asia (145)</h4>
-              <p>
-                Family, tribe, and community affiliations often shape social identity as
-                strongly as nationality.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Northern Europe (154)</h4>
-              <p>
-                High trust in public institutions supports strong social welfare systems and
-                high levels of civic participation.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Western Europe (155)</h4>
-              <p>
-                Many modern ideas about democracy, labor rights, and social contracts emerged
-                here and spread globally.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Southern Europe (039)</h4>
-              <p>
-                Daily social life is highly public — cafés, plazas, and streets are important
-                community spaces.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Eastern Europe (151)</h4>
-              <p>
-                Shared historical experiences have fostered strong traditions of resilience,
-                mutual aid, and cultural preservation.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Australia &amp; New Zealand (053)</h4>
-              <p>
-                Indigenous cultures emphasize a deep spiritual connection to land, influencing
-                modern conversations about identity and stewardship.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Melanesia (054)</h4>
-              <p>
-                Village-based social organization remains central, with strong obligations to
-                kin and community.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Micronesia (057)</h4>
-              <p>
-                Social status is often linked to knowledge of genealogy and navigation rather
-                than wealth.
-              </p>
-            </article>
-            <article class="fact-card">
-              <h4>Polynesia (061)</h4>
-              <p>
-                Culture is preserved through performance — dance, chant, and ceremony are
-                essential to social continuity.
-              </p>
-            </article>
-          </div>
-        </div>
+        <article id="fact-card" class="fact-card is-hidden">
+          <h4 id="fact-title"></h4>
+          <p id="fact-body"></p>
+        </article>
       </section>
     </div>
 
@@ -811,6 +590,236 @@
             };
           }).filter((region) => region.geometry && region.subregions.length > 0);
 
+          const regionFacts = new Map([
+            [
+              "Africa",
+              {
+                code: "002",
+                fact:
+                  "Africa is home to the youngest population in the world — more than 60% of Africans are under 25, shaping global music, fashion, and digital culture.",
+              },
+            ],
+            [
+              "Americas",
+              {
+                code: "019",
+                fact:
+                  "The Americas contain every major world religion, yet many of the region’s most influential cultural movements (jazz, hip-hop, salsa) originated locally.",
+              },
+            ],
+            [
+              "Asia",
+              {
+                code: "142",
+                fact:
+                  "Asia contains more languages than any other region, with over 2,300 living languages spoken across the continent.",
+              },
+            ],
+            [
+              "Europe",
+              {
+                code: "150",
+                fact:
+                  "Europe has the highest number of international borders per square kilometer, which helps explain its dense mix of languages, cuisines, and identities.",
+              },
+            ],
+            [
+              "Oceania",
+              {
+                code: "009",
+                fact:
+                  "Oceania’s societies are among the most maritime-oriented cultures on Earth, with navigation traditions that predate modern instruments.",
+              },
+            ],
+            [
+              "Antarctica",
+              {
+                code: "010",
+                fact:
+                  "Antarctica has no permanent population, yet is governed cooperatively by dozens of countries under international treaties — a rare example of peaceful global governance.",
+              },
+            ],
+          ]);
+
+          const subregionFacts = new Map([
+            [
+              "Northern Africa",
+              {
+                code: "015",
+                fact:
+                  "Arabic, Amazigh (Berber), French, and English influences intersect here, making it one of the world’s most linguistically blended regions.",
+              },
+            ],
+            [
+              "Western Africa",
+              {
+                code: "011",
+                fact:
+                  "Western Africa is a global music powerhouse, influencing jazz, blues, reggae, and Afrobeat worldwide.",
+              },
+            ],
+            [
+              "Middle Africa",
+              {
+                code: "017",
+                fact:
+                  "Extended family networks play a central social role, often functioning as economic safety nets where formal systems are limited.",
+              },
+            ],
+            [
+              "Eastern Africa",
+              {
+                code: "014",
+                fact:
+                  "This region is considered a cradle of humanity and remains one of the world’s most linguistically diverse areas.",
+              },
+            ],
+            [
+              "Southern Africa",
+              {
+                code: "018",
+                fact:
+                  "Southern Africa has some of the strongest traditions of oral storytelling, where history is preserved through spoken narrative.",
+              },
+            ],
+            [
+              "Northern America",
+              {
+                code: "021",
+                fact:
+                  "High levels of immigration have made Northern America one of the most culturally plural regions in the world.",
+              },
+            ],
+            [
+              "Central America",
+              {
+                code: "013",
+                fact:
+                  "Community festivals blending Indigenous, African, and European traditions are central to social life.",
+              },
+            ],
+            [
+              "Caribbean",
+              {
+                code: "029",
+                fact:
+                  "Despite its small land area, the Caribbean has had an outsized influence on global music, food, and sports.",
+              },
+            ],
+            [
+              "South America",
+              {
+                code: "005",
+                fact:
+                  "South America hosts some of the world’s strongest regional identities, where local culture often matters more than national borders.",
+              },
+            ],
+            [
+              "Central Asia",
+              {
+                code: "143",
+                fact:
+                  "Hospitality is a deeply rooted social value — guests are traditionally treated as honored visitors, regardless of social status.",
+              },
+            ],
+            [
+              "Eastern Asia",
+              {
+                code: "030",
+                fact:
+                  "Collective harmony and respect for elders are core social values that strongly influence education and work culture.",
+              },
+            ],
+            [
+              "Southern Asia",
+              {
+                code: "034",
+                fact:
+                  "This sub-region has some of the largest and most vibrant family networks in the world, often spanning multiple generations under one roof.",
+              },
+            ],
+            [
+              "South-eastern Asia",
+              {
+                code: "035",
+                fact:
+                  "Markets and street food are central social spaces, acting as daily meeting points for communities.",
+              },
+            ],
+            [
+              "Western Asia",
+              {
+                code: "145",
+                fact:
+                  "Family, tribe, and community affiliations often shape social identity as strongly as nationality.",
+              },
+            ],
+            [
+              "Northern Europe",
+              {
+                code: "154",
+                fact:
+                  "High trust in public institutions supports strong social welfare systems and high levels of civic participation.",
+              },
+            ],
+            [
+              "Western Europe",
+              {
+                code: "155",
+                fact:
+                  "Many modern ideas about democracy, labor rights, and social contracts emerged here and spread globally.",
+              },
+            ],
+            [
+              "Southern Europe",
+              {
+                code: "039",
+                fact:
+                  "Daily social life is highly public — cafés, plazas, and streets are important community spaces.",
+              },
+            ],
+            [
+              "Eastern Europe",
+              {
+                code: "151",
+                fact:
+                  "Shared historical experiences have fostered strong traditions of resilience, mutual aid, and cultural preservation.",
+              },
+            ],
+            [
+              "Australia and New Zealand",
+              {
+                code: "053",
+                fact:
+                  "Indigenous cultures emphasize a deep spiritual connection to land, influencing modern conversations about identity and stewardship.",
+              },
+            ],
+            [
+              "Melanesia",
+              {
+                code: "054",
+                fact:
+                  "Village-based social organization remains central, with strong obligations to kin and community.",
+              },
+            ],
+            [
+              "Micronesia",
+              {
+                code: "057",
+                fact:
+                  "Social status is often linked to knowledge of genealogy and navigation rather than wealth.",
+              },
+            ],
+            [
+              "Polynesia",
+              {
+                code: "061",
+                fact:
+                  "Culture is preserved through performance — dance, chant, and ceremony are essential to social continuity.",
+              },
+            ],
+          ]);
+
           // -----------------------------
           // 4) Draw layers
           // -----------------------------
@@ -849,6 +858,7 @@
             if (!isShapeClick) {
               clearSelections();
               updateSelectionLabel("None");
+              updateFactPanel(null);
             }
           });
 
@@ -935,6 +945,7 @@
                   });
                 }
                 updateSelectionLabel(`${d.name} (region)`);
+                updateFactPanel({ name: d.name, kind: "region" });
               });
 
             regionLabelsGroup
@@ -1050,6 +1061,7 @@
                         : 0,
                 });
                 updateSelectionLabel(`${d.name} (sub-region)`);
+                updateFactPanel({ name: d.name, kind: "subregion" });
               });
 
             subregionLabelsGroup
@@ -1172,15 +1184,48 @@
             subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
             subregionCountriesGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
+            if (!options.keepRegion && !options.keepSubregions) {
+              updateFactPanel(null);
+            }
           }
 
           function updateSelectionLabel(text) {
             d3.select("#selected-country").text(`Selected: ${text}`);
           }
 
+          function updateFactPanel(selection) {
+            const factCard = d3.select("#fact-card");
+            const factTitle = d3.select("#fact-title");
+            const factBody = d3.select("#fact-body");
+
+            if (!selection) {
+              factCard.classed("is-hidden", true);
+              factTitle.text("");
+              factBody.text("");
+              return;
+            }
+
+            const factLookup =
+              selection.kind === "region"
+                ? regionFacts.get(selection.name)
+                : subregionFacts.get(selection.name);
+
+            if (!factLookup) {
+              factCard.classed("is-hidden", true);
+              factTitle.text("");
+              factBody.text("");
+              return;
+            }
+
+            const label = `${selection.name} (${factLookup.code})`;
+            factTitle.text(label);
+            factBody.text(factLookup.fact);
+            factCard.classed("is-hidden", false);
+          }
 
           drawCountries();
           drawRegions();
+          updateFactPanel(null);
         }
       );
     </script>
