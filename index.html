@@ -1925,6 +1925,12 @@
               "Social life varies widely but often centers on local communities and shared interests.",
             ],
           ]);
+          const countryAliases = new Map([
+            ["S. Geo. and the Is.", "South Georgia and the South Sandwich Islands"],
+            ["Falkland Is.", "Falkland Islands"],
+            ["Bolivia", "Bolivia (Plurinational State of)"],
+            ["Venezuela", "Venezuela (Bolivarian Republic of)"],
+          ]);
 
           // -----------------------------
           // 4) Draw layers
@@ -2329,7 +2335,8 @@
           }
 
           function getCountryFact(countryName) {
-            return countryFacts.get(countryName) ?? "";
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            return countryFacts.get(canonicalName) ?? "";
           }
 
           drawCountries();
