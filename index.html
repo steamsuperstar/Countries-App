@@ -724,7 +724,8 @@
                 const useEasternEuropeZoom = d.name === "Eastern Europe";
                 const useMicronesiaZoom = d.name === "Micronesia";
                 const micronesiaLabelOffset = d.name.length * 7.8 * 2;
-                zoomToGeometry(targetFeature || d.geometry, {
+                const zoomTarget = useMicronesiaZoom ? d.geometry : targetFeature || d.geometry;
+                zoomToGeometry(zoomTarget, {
                   duration: 450,
                   padding: useWesternEuropeZoom
                     ? 1.25
