@@ -457,6 +457,8 @@
 
       const countryCodesUrl =
         "https://raw.githubusercontent.com/steamsuperstar/Countries-App/main/country-codes.csv";
+      const languageCodesUrl =
+        "https://raw.githubusercontent.com/steamsuperstar/Countries-App/main/language-codes-full.csv";
 
       function normalizeCountryCodeRow(row) {
         if (row.region_code || row.subregion_code) {
@@ -475,6 +477,7 @@
           global_name: row["Global Name"] ?? row.global_name,
           capital: row["Capital"] ?? row.capital,
           currency_name: row["ISO4217-currency_name"] ?? row.currency_name,
+          languages: row["Languages"] ?? row.languages,
         };
       }
 
@@ -502,8 +505,28 @@
         return normalizeCountryCodes(d3.csvParse(countryCodesCsv));
       }
 
-      Promise.all([d3.json(worldAtlasUrl), loadCountryCodes()]).then(
-        ([topology, countryCodes]) => {
+      async function loadLanguageCodes() {
+        try {
+          const response = await fetch(languageCodesUrl);
+          if (response.ok) {
+            return d3.csvParse(await response.text());
+          }
+        } catch (error) {
+          // Ignore and attempt local fallback.
+        }
+        try {
+          const response = await fetch("language-codes-full.csv");
+          if (response.ok) {
+            return d3.csvParse(await response.text());
+          }
+        } catch (error) {
+          // Ignore and return empty list.
+        }
+        return [];
+      }
+
+      Promise.all([d3.json(worldAtlasUrl), loadCountryCodes(), loadLanguageCodes()]).then(
+        ([topology, countryCodes, languageCodes]) => {
           // Convert TopoJSON to GeoJSON features so D3 can draw each country.
           const countryObjectKey =
             ["countries", "world", "admin", "ne_50m_admin_0_countries"].find(
@@ -3075,6 +3098,27 @@
           const countryCurrencyByNumeric = new Map();
           const countryCurrencyByName = new Map();
           const normalizedCountryCurrencyByName = new Map();
+          const languageNameByCode = new Map();
+          const countryLanguagesByNumeric = new Map();
+          const countryLanguagesByName = new Map();
+          const normalizedCountryLanguagesByName = new Map();
+
+          function addLanguageCode(code, name) {
+            const normalized = code?.trim().toLowerCase();
+            const normalizedName = name?.trim();
+            if (!normalized || !normalizedName) {
+              return;
+            }
+            if (!languageNameByCode.has(normalized)) {
+              languageNameByCode.set(normalized, normalizedName);
+            }
+          }
+
+          languageCodes.forEach((row) => {
+            addLanguageCode(row["alpha3-b"], row.English);
+            addLanguageCode(row["alpha3-t"], row.English);
+            addLanguageCode(row.alpha2, row.English);
+          });
 
           function getCountryNameCandidates(row) {
             return [
@@ -3137,10 +3181,33 @@
             return tokens.join(" ");
           }
 
+          function getCountryLanguagesFromRow(row) {
+            if (!row.languages) {
+              return [];
+            }
+            const languageSet = new Set();
+            row.languages
+              .split(",")
+              .map((entry) => entry.trim())
+              .filter(Boolean)
+              .forEach((entry) => {
+                const baseCode = entry.split("-")[0]?.trim().toLowerCase();
+                if (!baseCode) {
+                  return;
+                }
+                const languageName = languageNameByCode.get(baseCode);
+                if (languageName) {
+                  languageSet.add(languageName);
+                }
+              });
+            return Array.from(languageSet);
+          }
+
           countryCodes.forEach((row) => {
             const numeric = normalizeNumeric(row.numeric);
             const capital = row.capital?.trim();
             const currencyName = row.currency_name?.trim();
+            const languages = getCountryLanguagesFromRow(row);
             if (!numeric) {
               return;
             }
@@ -3168,12 +3235,23 @@
                   normalizedCountryCurrencyByName.set(normalizedKey, currencyName);
                 }
               }
+              if (languages.length) {
+                if (!countryLanguagesByName.has(name)) {
+                  countryLanguagesByName.set(name, languages);
+                }
+                if (normalizedKey && !normalizedCountryLanguagesByName.has(normalizedKey)) {
+                  normalizedCountryLanguagesByName.set(normalizedKey, languages);
+                }
+              }
             });
             if (capital && !countryCapitalByNumeric.has(numeric)) {
               countryCapitalByNumeric.set(numeric, capital);
             }
             if (currencyName && !countryCurrencyByNumeric.has(numeric)) {
               countryCurrencyByNumeric.set(numeric, currencyName);
+            }
+            if (languages.length && !countryLanguagesByNumeric.has(numeric)) {
+              countryLanguagesByNumeric.set(numeric, languages);
             }
           });
 
@@ -3240,6 +3318,31 @@
             const fallbackNumeric = getCountryNumeric(canonicalName);
             return fallbackNumeric
               ? countryCurrencyByNumeric.get(normalizeNumeric(fallbackNumeric)) ?? ""
+              : "";
+          }
+
+          function formatLanguageList(languages) {
+            return Array.isArray(languages) && languages.length ? languages.join(", ") : "";
+          }
+
+          function getCountryLanguages(countryName, countryNumeric) {
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            const numericKey = countryNumeric ? normalizeNumeric(countryNumeric) : "";
+            if (numericKey && countryLanguagesByNumeric.has(numericKey)) {
+              return formatLanguageList(countryLanguagesByNumeric.get(numericKey));
+            }
+            if (countryLanguagesByName.has(canonicalName)) {
+              return formatLanguageList(countryLanguagesByName.get(canonicalName));
+            }
+            const normalizedKey = normalizeCountryName(canonicalName);
+            if (normalizedKey && normalizedCountryLanguagesByName.has(normalizedKey)) {
+              return formatLanguageList(normalizedCountryLanguagesByName.get(normalizedKey));
+            }
+            const fallbackNumeric = getCountryNumeric(canonicalName);
+            return fallbackNumeric
+              ? formatLanguageList(
+                  countryLanguagesByNumeric.get(normalizeNumeric(fallbackNumeric)) ?? []
+                )
               : "";
           }
 
@@ -3349,6 +3452,7 @@
                   fact: getCountryFact(countryName, d.id),
                   capital: getCountryCapital(countryName, d.id),
                   currencyName: getCountryCurrency(countryName, d.id),
+                  languages: getCountryLanguages(countryName, d.id),
                 });
               });
           }
@@ -3566,6 +3670,7 @@
                   fact: getCountryFact(countryName, d.id),
                   capital: getCountryCapital(countryName, d.id),
                   currencyName: getCountryCurrency(countryName, d.id),
+                  languages: getCountryLanguages(countryName, d.id),
                 });
               });
 
@@ -3649,7 +3754,13 @@
             }
           }
 
-          function setSelectionDisplay({ label, fact, capital, currencyName } = {}) {
+          function setSelectionDisplay({
+            label,
+            fact,
+            capital,
+            currencyName,
+            languages,
+          } = {}) {
             const selection = label ?? "None";
             const textLines = [];
             if (fact) {
@@ -3661,9 +3772,12 @@
             if (currencyName) {
               textLines.push(`<span>Currency: ${currencyName}</span>`);
             }
+            if (languages) {
+              textLines.push(`<span>Languages: ${languages}</span>`);
+            }
             const extraText = textLines.length ? `<br>${textLines.join("<br>")}` : "";
             d3.select("#selected-country")
-              .classed("is-expanded", Boolean(capital || currencyName))
+              .classed("is-expanded", Boolean(capital || currencyName || languages))
               .html(`Selected: ${selection}${extraText}`);
           }
 
