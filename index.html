@@ -600,7 +600,8 @@
             const padding = options.padding ?? 0.9;
             const maxScale = options.maxScale ?? 8;
             const scale = Math.min(maxScale, padding / Math.max(dx / width, dy / height));
-            const translate = [width / 2 - scale * x, height / 2 - scale * y];
+            const yOffset = options.yOffset ?? 0;
+            const translate = [width / 2 - scale * x, height / 2 - scale * y + yOffset];
             svg
               .transition()
               .duration(options.duration ?? 450)
@@ -745,6 +746,7 @@
                           : isDeepZoom
                           ? 12
                           : 10,
+                  yOffset: useNorthernAmericaZoom ? -40 : useEasternEuropeZoom ? -30 : 0,
                 });
                 updateSelectionLabel(`${d.name} (sub-region)`);
               });
