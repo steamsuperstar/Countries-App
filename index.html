@@ -474,6 +474,7 @@
           official_name_en: row["official_name_en"] ?? row.official_name_en,
           global_name: row["Global Name"] ?? row.global_name,
           capital: row["Capital"] ?? row.capital,
+          currency_name: row["ISO4217-currency_name"] ?? row.currency_name,
         };
       }
 
@@ -3071,6 +3072,9 @@
           const countryCapitalByNumeric = new Map();
           const countryCapitalByName = new Map();
           const normalizedCountryCapitalByName = new Map();
+          const countryCurrencyByNumeric = new Map();
+          const countryCurrencyByName = new Map();
+          const normalizedCountryCurrencyByName = new Map();
 
           function getCountryNameCandidates(row) {
             return [
@@ -3136,6 +3140,7 @@
           countryCodes.forEach((row) => {
             const numeric = normalizeNumeric(row.numeric);
             const capital = row.capital?.trim();
+            const currencyName = row.currency_name?.trim();
             if (!numeric) {
               return;
             }
@@ -3155,9 +3160,20 @@
                   normalizedCountryCapitalByName.set(normalizedKey, capital);
                 }
               }
+              if (currencyName) {
+                if (!countryCurrencyByName.has(name)) {
+                  countryCurrencyByName.set(name, currencyName);
+                }
+                if (normalizedKey && !normalizedCountryCurrencyByName.has(normalizedKey)) {
+                  normalizedCountryCurrencyByName.set(normalizedKey, currencyName);
+                }
+              }
             });
             if (capital && !countryCapitalByNumeric.has(numeric)) {
               countryCapitalByNumeric.set(numeric, capital);
+            }
+            if (currencyName && !countryCurrencyByNumeric.has(numeric)) {
+              countryCurrencyByNumeric.set(numeric, currencyName);
             }
           });
 
@@ -3205,6 +3221,25 @@
             const fallbackNumeric = getCountryNumeric(canonicalName);
             return fallbackNumeric
               ? countryCapitalByNumeric.get(normalizeNumeric(fallbackNumeric)) ?? ""
+              : "";
+          }
+
+          function getCountryCurrency(countryName, countryNumeric) {
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            const numericKey = countryNumeric ? normalizeNumeric(countryNumeric) : "";
+            if (numericKey && countryCurrencyByNumeric.has(numericKey)) {
+              return countryCurrencyByNumeric.get(numericKey);
+            }
+            if (countryCurrencyByName.has(canonicalName)) {
+              return countryCurrencyByName.get(canonicalName);
+            }
+            const normalizedKey = normalizeCountryName(canonicalName);
+            if (normalizedKey && normalizedCountryCurrencyByName.has(normalizedKey)) {
+              return normalizedCountryCurrencyByName.get(normalizedKey);
+            }
+            const fallbackNumeric = getCountryNumeric(canonicalName);
+            return fallbackNumeric
+              ? countryCurrencyByNumeric.get(normalizeNumeric(fallbackNumeric)) ?? ""
               : "";
           }
 
@@ -3313,6 +3348,7 @@
                   label: countryName,
                   fact: getCountryFact(countryName, d.id),
                   capital: getCountryCapital(countryName, d.id),
+                  currencyName: getCountryCurrency(countryName, d.id),
                 });
               });
           }
@@ -3529,6 +3565,7 @@
                   label: `${countryName} (${subregionName})`,
                   fact: getCountryFact(countryName, d.id),
                   capital: getCountryCapital(countryName, d.id),
+                  currencyName: getCountryCurrency(countryName, d.id),
                 });
               });
 
@@ -3612,7 +3649,7 @@
             }
           }
 
-          function setSelectionDisplay({ label, fact, capital } = {}) {
+          function setSelectionDisplay({ label, fact, capital, currencyName } = {}) {
             const selection = label ?? "None";
             const textLines = [];
             if (fact) {
@@ -3621,9 +3658,12 @@
             if (capital) {
               textLines.push(`<span>Capital: ${capital}</span>`);
             }
+            if (currencyName) {
+              textLines.push(`<span>Currency: ${currencyName}</span>`);
+            }
             const extraText = textLines.length ? `<br>${textLines.join("<br>")}` : "";
             d3.select("#selected-country")
-              .classed("is-expanded", Boolean(capital))
+              .classed("is-expanded", Boolean(capital || currencyName))
               .html(`Selected: ${selection}${extraText}`);
           }
 
