@@ -476,6 +476,8 @@
           official_name_en: row["official_name_en"] ?? row.official_name_en,
           global_name: row["Global Name"] ?? row.global_name,
           capital: row["Capital"] ?? row.capital,
+          alpha2: row["ISO3166-1-Alpha-2"] ?? row.alpha2,
+          is_independent: row["is_independent"] ?? row.is_independent,
           currency_name: row["ISO4217-currency_name"] ?? row.currency_name,
           languages: row["Languages"] ?? row.languages,
         };
@@ -3095,6 +3097,11 @@
           const countryCapitalByNumeric = new Map();
           const countryCapitalByName = new Map();
           const normalizedCountryCapitalByName = new Map();
+          const countryFormalByNumeric = new Map();
+          const countryFormalByName = new Map();
+          const normalizedCountryFormalByName = new Map();
+          const countryByNumeric = new Map();
+          const countryByAlpha2 = new Map();
           const countryCurrencyByNumeric = new Map();
           const countryCurrencyByName = new Map();
           const normalizedCountryCurrencyByName = new Map();
@@ -3206,10 +3213,18 @@
           countryCodes.forEach((row) => {
             const numeric = normalizeNumeric(row.numeric);
             const capital = row.capital?.trim();
+            const formalName = row.english_formal?.trim();
+            const alpha2 = row.alpha2?.trim().toUpperCase();
             const currencyName = row.currency_name?.trim();
             const languages = getCountryLanguagesFromRow(row);
             if (!numeric) {
               return;
+            }
+            if (!countryByNumeric.has(numeric)) {
+              countryByNumeric.set(numeric, row);
+            }
+            if (alpha2 && !countryByAlpha2.has(alpha2)) {
+              countryByAlpha2.set(alpha2, row);
             }
             getCountryNameCandidates(row).forEach((name) => {
               if (!countryCodeByName.has(name)) {
@@ -3225,6 +3240,14 @@
                 }
                 if (normalizedKey && !normalizedCountryCapitalByName.has(normalizedKey)) {
                   normalizedCountryCapitalByName.set(normalizedKey, capital);
+                }
+              }
+              if (formalName) {
+                if (!countryFormalByName.has(name)) {
+                  countryFormalByName.set(name, formalName);
+                }
+                if (normalizedKey && !normalizedCountryFormalByName.has(normalizedKey)) {
+                  normalizedCountryFormalByName.set(normalizedKey, formalName);
                 }
               }
               if (currencyName) {
@@ -3246,6 +3269,9 @@
             });
             if (capital && !countryCapitalByNumeric.has(numeric)) {
               countryCapitalByNumeric.set(numeric, capital);
+            }
+            if (formalName && !countryFormalByNumeric.has(numeric)) {
+              countryFormalByNumeric.set(numeric, formalName);
             }
             if (currencyName && !countryCurrencyByNumeric.has(numeric)) {
               countryCurrencyByNumeric.set(numeric, currencyName);
@@ -3300,6 +3326,48 @@
             return fallbackNumeric
               ? countryCapitalByNumeric.get(normalizeNumeric(fallbackNumeric)) ?? ""
               : "";
+          }
+
+          function getCountryFormal(countryName, countryNumeric) {
+            const canonicalName = countryAliases.get(countryName) ?? countryName;
+            const numericKey = countryNumeric ? normalizeNumeric(countryNumeric) : "";
+            if (numericKey && countryFormalByNumeric.has(numericKey)) {
+              return countryFormalByNumeric.get(numericKey);
+            }
+            if (countryFormalByName.has(canonicalName)) {
+              return countryFormalByName.get(canonicalName);
+            }
+            const normalizedKey = normalizeCountryName(canonicalName);
+            if (normalizedKey && normalizedCountryFormalByName.has(normalizedKey)) {
+              return normalizedCountryFormalByName.get(normalizedKey);
+            }
+            const fallbackNumeric = getCountryNumeric(canonicalName);
+            return fallbackNumeric
+              ? countryFormalByNumeric.get(normalizeNumeric(fallbackNumeric)) ?? ""
+              : "";
+          }
+
+          function getCountryDependency(countryName, countryNumeric) {
+            const numericKey = countryNumeric ? normalizeNumeric(countryNumeric) : "";
+            const fallbackNumeric = getCountryNumeric(countryName);
+            const lookupNumeric = numericKey || normalizeNumeric(fallbackNumeric);
+            const row = lookupNumeric ? countryByNumeric.get(lookupNumeric) : null;
+            const status = row?.is_independent?.trim();
+            if (!status || /^yes$/i.test(status)) {
+              return "";
+            }
+            const alpha2Match = status.match(/([A-Z]{2})$/);
+            if (!alpha2Match) {
+              return "";
+            }
+            const parentRow = countryByAlpha2.get(alpha2Match[1]);
+            const parentName =
+              parentRow?.english_short ||
+              parentRow?.cldr_name ||
+              parentRow?.official_name_en ||
+              parentRow?.global_name ||
+              alpha2Match[1];
+            return `part of ${parentName}.`;
           }
 
           function getCountryCurrency(countryName, countryNumeric) {
@@ -3450,6 +3518,8 @@
                 setSelectionDisplay({
                   label: countryName,
                   fact: getCountryFact(countryName, d.id),
+                  formalName: getCountryFormal(countryName, d.id),
+                  dependency: getCountryDependency(countryName, d.id),
                   capital: getCountryCapital(countryName, d.id),
                   currencyName: getCountryCurrency(countryName, d.id),
                   languages: getCountryLanguages(countryName, d.id),
@@ -3668,6 +3738,8 @@
                 setSelectionDisplay({
                   label: `${countryName} (${subregionName})`,
                   fact: getCountryFact(countryName, d.id),
+                  formalName: getCountryFormal(countryName, d.id),
+                  dependency: getCountryDependency(countryName, d.id),
                   capital: getCountryCapital(countryName, d.id),
                   currencyName: getCountryCurrency(countryName, d.id),
                   languages: getCountryLanguages(countryName, d.id),
@@ -3757,28 +3829,44 @@
           function setSelectionDisplay({
             label,
             fact,
+            formalName,
+            dependency,
             capital,
             currencyName,
             languages,
           } = {}) {
             const selection = label ?? "None";
-            const textLines = [];
-            if (fact) {
-              textLines.push(`<span>${fact}</span>`);
-            }
+            const detailLines = [];
             if (capital) {
-              textLines.push(`<span>Capital: ${capital}</span>`);
-            }
-            if (currencyName) {
-              textLines.push(`<span>Currency: ${currencyName}</span>`);
+              detailLines.push(`<span>Capital: ${capital}</span>`);
             }
             if (languages) {
-              textLines.push(`<span>Languages: ${languages}</span>`);
+              detailLines.push(`<span>Languages: ${languages}</span>`);
             }
-            const extraText = textLines.length ? `<br>${textLines.join("<br>")}` : "";
+            if (currencyName) {
+              detailLines.push(`<span>Currency: ${currencyName}</span>`);
+            }
+            const formalSuffix =
+              formalName && selection !== "None" ? `, formally ${formalName}` : "";
+            const dependencySuffix =
+              dependency && selection !== "None" ? `, ${dependency}` : "";
+            const selectionLine = `Selected: ${selection}${formalSuffix}${dependencySuffix}`;
+            const detailText = detailLines.length
+              ? `<br>${detailLines.join("<br>")}`
+              : "";
+            const factLine = fact ? `<span>${fact}</span>` : "";
+            const factText =
+              factLine && (detailLines.length || selection !== "None")
+                ? `<br><br>${factLine}`
+                : factLine
+                  ? `<br>${factLine}`
+                  : "";
             d3.select("#selected-country")
-              .classed("is-expanded", Boolean(capital || currencyName || languages))
-              .html(`Selected: ${selection}${extraText}`);
+              .classed(
+                "is-expanded",
+                Boolean(formalName || dependency || capital || currencyName || languages || fact)
+              )
+              .html(`${selectionLine}${detailText}${factText}`);
           }
 
           function getSelectionFact(selection) {
@@ -3806,10 +3894,7 @@
             if (!entry?.fact) {
               return "";
             }
-            const numeric = entry.code || numericKey || getCountryNumeric(canonicalName);
-            return numeric
-              ? `${entry.fact} (ISO 3166-1 numeric: ${numeric})`
-              : entry.fact;
+            return entry.fact;
           }
 
           drawCountries();
