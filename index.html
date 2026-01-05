@@ -3880,7 +3880,7 @@
             if (!factLookup) {
               return "";
             }
-            return `${selection.name} (${factLookup.code}) — ${factLookup.fact}`;
+            return factLookup.fact;
           }
 
           function getCountryFact(countryName, countryNumeric) {
