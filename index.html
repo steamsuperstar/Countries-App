@@ -3689,6 +3689,8 @@
 
           // Draw each sub-region for the selected region.
           function drawSubregions(region) {
+            const hideSubregionLabels =
+              gameState?.active && gameState.mode === "subregion";
             subregionGroup
               .selectAll("path")
               .data(region.subregions, (d) => d.code)
@@ -3703,7 +3705,11 @@
                 subregionCountriesGroup.classed("is-hidden", false);
                 subregionCountriesGroup.raise();
                 subregionLabelsGroup.classed("is-hidden", true);
-                countryLabelsGroup.classed("is-hidden", false);
+                if (gameState?.active && gameState.mode === "country") {
+                  countryLabelsGroup.classed("is-hidden", true);
+                } else {
+                  countryLabelsGroup.classed("is-hidden", false);
+                }
                 countryLabelsGroup.raise();
                 const deepZoomSubregions = new Set(["151", "21", "54"]);
                 const isDeepZoom = deepZoomSubregions.has(String(d.code));
@@ -3797,7 +3803,7 @@
               });
 
             subregionLabelsGroup
-              .classed("is-hidden", false)
+              .classed("is-hidden", hideSubregionLabels ? true : false)
               .selectAll("text")
               .data(region.subregions, (d) => d.code)
               .join("text")
@@ -3852,7 +3858,10 @@
               });
 
             countryLabelsGroup
-              .classed("is-hidden", false)
+              .classed(
+                "is-hidden",
+                gameState?.active && gameState.mode === "country" ? true : false
+              )
               .selectAll("text")
               .data(subregion.features, (d) => d.id)
               .join("text")
