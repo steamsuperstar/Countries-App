@@ -4025,6 +4025,15 @@
             }
 
             configureRegionView();
+            if (gameState.mode === "region") {
+              regionLabelsGroup.classed("is-hidden", true);
+            }
+            if (gameState.mode === "subregion") {
+              subregionLabelsGroup.classed("is-hidden", true);
+            }
+            if (gameState.mode === "country") {
+              countryLabelsGroup.classed("is-hidden", true);
+            }
             setSelectionDisplay({ label: "None" });
             setGameStatus({ message: gameState.prompt });
           }
@@ -4068,6 +4077,15 @@
             }
             if (kind !== gameState.target.kind) {
               return;
+            }
+            if (gameState.target.kind === "region") {
+              regionLabelsGroup.classed("is-hidden", false);
+            }
+            if (gameState.target.kind === "subregion") {
+              subregionLabelsGroup.classed("is-hidden", false);
+            }
+            if (gameState.target.kind === "country") {
+              countryLabelsGroup.classed("is-hidden", false);
             }
             let isCorrect = false;
             if (gameState.target.kind === "region") {
