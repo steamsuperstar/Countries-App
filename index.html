@@ -266,30 +266,6 @@
     </style>
   </head>
   <body>
-    <div class="map-card">
-      <section class="game-panel" aria-label="Knowledge game controls">
-        <h2>Knowledge Game</h2>
-        <div class="game-controls">
-          <label for="game-mode">Target:</label>
-          <select id="game-mode">
-            <option value="region">Region</option>
-            <option value="subregion">Sub-region</option>
-            <option value="country">Country</option>
-          </select>
-          <button id="start-round" type="button">Start round</button>
-          <button id="reveal-answer" type="button" disabled>Reveal on map</button>
-        </div>
-        <p id="game-status" class="game-status">Start a round to begin.</p>
-        <p id="game-hint" class="game-hint"></p>
-      </section>
-      <div class="map-shell">
-        <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
-        <div id="selected-country" class="selected-label">Selected: None</div>
-      </div>
-      <section class="facts-panel" aria-label="UN M49 fun social facts">
-      </section>
-    </div>
-
     <!--
       CSV lookup for ISO3166-1-numeric -> sub-region metadata.
       Keeping it inline ensures the demo works even when opened directly from disk.
@@ -545,6 +521,31 @@
 894,2,Africa,202,Sub-Saharan Africa
 716,2,Africa,202,Sub-Saharan Africa
     </script>
+    <div class="map-card">
+      <section class="game-panel" aria-label="Knowledge game controls">
+        <h2>Knowledge Game</h2>
+        <div class="game-controls">
+          <label for="game-mode">Target:</label>
+          <select id="game-mode">
+            <option value="region">Region</option>
+            <option value="subregion">Sub-region</option>
+            <option value="country">Country</option>
+          </select>
+          <button id="start-round" type="button">Start round</button>
+          <button id="reveal-answer" type="button" disabled>Reveal on map</button>
+        </div>
+        <p id="game-status" class="game-status">Start a round to begin.</p>
+        <p id="game-hint" class="game-hint"></p>
+      </section>
+      <div class="map-shell">
+        <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
+        <div id="selected-country" class="selected-label">Selected: None</div>
+      </div>
+      <section class="facts-panel" aria-label="UN M49 fun social facts">
+      </section>
+    </div>
+
+
 
     <!-- D3 + TopoJSON libraries (CDN, no build tools required) -->
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
@@ -581,8 +582,6 @@
         return Number.isFinite(parsed) ? String(parsed) : String(value).trim();
       }
 
-      const countryCodesUrl =
-        "https://raw.githubusercontent.com/steamsuperstar/Countries-App/main/country-codes.csv";
       const languageCodesUrl =
         "https://raw.githubusercontent.com/steamsuperstar/Countries-App/main/language-codes-full.csv";
 
@@ -614,22 +613,6 @@
       }
 
       async function loadCountryCodes() {
-        try {
-          const response = await fetch(countryCodesUrl);
-          if (response.ok) {
-            return normalizeCountryCodes(d3.csvParse(await response.text()));
-          }
-        } catch (error) {
-          // Ignore and attempt local fallback.
-        }
-        try {
-          const response = await fetch("country-codes.csv");
-          if (response.ok) {
-            return normalizeCountryCodes(d3.csvParse(await response.text()));
-          }
-        } catch (error) {
-          // If the file cannot be loaded (e.g., file:// protocol), fall back to inline CSV.
-        }
         return normalizeCountryCodes(d3.csvParse(countryCodesCsv));
       }
 
