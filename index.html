@@ -4127,14 +4127,12 @@
             }
             configureRegionView();
             drawSubregions(target.region);
-            subregionGroup.classed("is-hidden", false);
-            subregionGroup.raise();
+            subregionGroup.classed("is-hidden", true);
             regionGroup.lower();
             subregionCountriesGroup.classed("is-hidden", true);
             regionLabelsGroup.classed("is-hidden", true);
-            subregionLabelsGroup.classed("is-hidden", false);
+            subregionLabelsGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
-            subregionLabelsGroup.raise();
             resetZoom();
             drawSubregionCountries(target.subregion);
             subregionCountriesGroup.classed("is-hidden", false);
