@@ -3611,6 +3611,80 @@
             svg.transition().duration(450).call(zoom.transform, d3.zoomIdentity);
           }
 
+          function zoomToSubregion(subregion) {
+            const isDeepZoom = new Set(["151", "21", "54"]).has(String(subregion.code));
+            const targetName = new Map([
+              ["Melanesia", "Vanuatu"],
+              ["Micronesia", "Micronesia (Federated States of)"],
+              ["Australia and New Zealand", "Australia"],
+              ["Western Europe", "Luxembourg"],
+            ]).get(subregion.name);
+            const targetFeature = targetName
+              ? subregion.features.find((feature) => feature.properties.name === targetName)
+              : null;
+            const useMicronesiaZoom = subregion.name === "Micronesia";
+            const useWesternEuropeZoom = subregion.name === "Western Europe";
+            const useNorthernAmericaZoom = subregion.name === "Northern America";
+            const useEasternEuropeZoom = subregion.name === "Eastern Europe";
+            const useShallowerZoom = subregion.name === "Melanesia";
+            const useDeeperZoom = useMicronesiaZoom;
+            const micronesiaClusterNames = new Set([
+              "Micronesia (Federated States of)",
+              "Marshall Islands",
+              "Palau",
+              "Nauru",
+              "Guam",
+              "Northern Mariana Islands",
+            ]);
+            const micronesiaFocusFeatures = useMicronesiaZoom
+              ? subregion.features.filter((feature) =>
+                  micronesiaClusterNames.has(feature.properties.name)
+                )
+              : subregion.features;
+            const micronesiaClusterCenter =
+              useMicronesiaZoom && micronesiaFocusFeatures.length
+                ? path.centroid({
+                    type: "FeatureCollection",
+                    features: micronesiaFocusFeatures,
+                  })
+                : null;
+            const zoomTarget = useMicronesiaZoom
+              ? subregion.geometry
+              : targetFeature || subregion.geometry;
+            zoomToGeometry(zoomTarget, {
+              duration: 450,
+              center: useMicronesiaZoom ? micronesiaClusterCenter : null,
+              padding: useWesternEuropeZoom
+                ? 1.25
+                : useNorthernAmericaZoom
+                  ? 0.95
+                  : useEasternEuropeZoom
+                    ? 1.15
+                    : useShallowerZoom
+                      ? 0.95
+                      : useDeeperZoom
+                        ? 1.85
+                        : isDeepZoom
+                          ? 1.2
+                          : 1.05,
+              maxScale: useWesternEuropeZoom
+                ? 12
+                : useNorthernAmericaZoom
+                  ? 12
+                  : useEasternEuropeZoom
+                    ? 12
+                    : useShallowerZoom
+                      ? 8
+                      : useDeeperZoom
+                        ? 22
+                        : isDeepZoom
+                        ? 12
+                        : 10,
+              xOffset: useMicronesiaZoom ? 24 : useEasternEuropeZoom ? -120 : 0,
+              yOffset: useMicronesiaZoom ? -12 : useNorthernAmericaZoom ? -100 : useEasternEuropeZoom ? -150 : 0,
+            });
+          }
+
           function drawCountries() {
             const baseCountries = otherCountries.length ? otherCountries : countries;
             countriesGroup
@@ -3653,11 +3727,13 @@
               .data(regions)
               .join("path")
               .attr("class", "region")
-              .attr("d", (d) => path(d.geometry))
-              .on("click", function (event, d) {
-                event.stopPropagation();
-                clearSelections();
-                d3.select(this).classed("is-selected", true);
+            .attr("d", (d) => path(d.geometry))
+            .on("click", function (event, d) {
+              event.stopPropagation();
+              clearSelections();
+              d3.select(this).classed("is-selected", true);
+              const isRegionGame = gameState?.active && gameState.mode === "region";
+              if (!isRegionGame) {
                 drawSubregions(d);
                 subregionGroup.classed("is-hidden", false);
                 subregionGroup.raise();
@@ -3678,11 +3754,12 @@
                     maxScale: useEuropeZoom ? 9 : 8,
                   });
                 }
-                const selectionLabel = `${d.name} (region)`;
-                setSelectionDisplay({
-                  label: selectionLabel,
-                  fact: getSelectionFact({ name: d.name, kind: "region" }),
-                });
+              }
+              const selectionLabel = `${d.name} (region)`;
+              setSelectionDisplay({
+                label: selectionLabel,
+                fact: getSelectionFact({ name: d.name, kind: "region" }),
+              });
                 handleGameGuess("region", { region: d });
               });
 
@@ -3706,11 +3783,13 @@
               .data(region.subregions, (d) => d.code)
               .join("path")
               .attr("class", "subregion")
-              .attr("d", (d) => path(d.geometry))
-              .on("click", function (event, d) {
-                event.stopPropagation();
-                clearSelections({ keepRegion: true, keepSubregions: true });
-                d3.select(this).classed("is-selected", true);
+            .attr("d", (d) => path(d.geometry))
+            .on("click", function (event, d) {
+              event.stopPropagation();
+              clearSelections({ keepRegion: true, keepSubregions: true });
+              d3.select(this).classed("is-selected", true);
+              const isSubregionGame = gameState?.active && gameState.mode === "subregion";
+              if (!isSubregionGame) {
                 drawSubregionCountries(d);
                 subregionCountriesGroup.classed("is-hidden", false);
                 subregionCountriesGroup.raise();
@@ -3721,93 +3800,15 @@
                   countryLabelsGroup.classed("is-hidden", false);
                 }
                 countryLabelsGroup.raise();
-                const deepZoomSubregions = new Set(["151", "21", "54"]);
-                const isDeepZoom = deepZoomSubregions.has(String(d.code));
-                const namedZoomTargets = new Map([
-                  ["Melanesia", "Vanuatu"],
-                  ["Micronesia", "Micronesia (Federated States of)"],
-                  ["Australia and New Zealand", "Australia"],
-                  ["Western Europe", "Luxembourg"],
-                ]);
-                const targetName = namedZoomTargets.get(d.name);
-                const targetFeature = targetName
-                  ? d.features.find((feature) => feature.properties.name === targetName)
-                  : null;
-                const useDeeperZoom = d.name === "Micronesia";
-                const useShallowerZoom = d.name === "Melanesia";
-                const useWesternEuropeZoom = d.name === "Western Europe";
-                const useNorthernAmericaZoom = d.name === "Northern America";
-                const useEasternEuropeZoom = d.name === "Eastern Europe";
-                const useMicronesiaZoom = d.name === "Micronesia";
-                const micronesiaClusterNames = new Set([
-                  "Micronesia (Federated States of)",
-                  "Marshall Islands",
-                  "Palau",
-                  "Nauru",
-                  "Guam",
-                  "Northern Mariana Islands",
-                ]);
-                const micronesiaClusterFeatures = d.features.filter((feature) =>
-                  micronesiaClusterNames.has(feature.properties.name)
-                );
-                const micronesiaFocusFeatures =
-                  micronesiaClusterFeatures.length > 0
-                    ? micronesiaClusterFeatures
-                    : d.features;
-                const micronesiaClusterCenter = useMicronesiaZoom
-                  ? path.centroid({
-                      type: "FeatureCollection",
-                      features: micronesiaFocusFeatures,
-                    })
-                  : null;
-                const zoomTarget = useMicronesiaZoom ? d.geometry : targetFeature || d.geometry;
-                const micronesiaNudge = [24, -12];
-                zoomToGeometry(zoomTarget, {
-                  duration: 450,
-                  center: useMicronesiaZoom ? micronesiaClusterCenter : null,
-                  padding: useWesternEuropeZoom
-                    ? 1.25
-                    : useNorthernAmericaZoom
-                      ? 0.95
-                      : useEasternEuropeZoom
-                        ? 1.15
-                      : useShallowerZoom
-                        ? 0.95
-                        : useDeeperZoom
-                          ? 1.85
-                          : isDeepZoom
-                            ? 1.2
-                            : 1.05,
-                  maxScale: useWesternEuropeZoom
-                    ? 12
-                    : useNorthernAmericaZoom
-                      ? 12
-                      : useEasternEuropeZoom
-                        ? 12
-                      : useShallowerZoom
-                        ? 8
-                        : useDeeperZoom
-                          ? 22
-                          : isDeepZoom
-                          ? 12
-                          : 10,
-                  xOffset: useMicronesiaZoom
-                    ? micronesiaNudge[0]
-                    : useEasternEuropeZoom
-                      ? -120
-                      : 0,
-                  yOffset: useMicronesiaZoom
-                    ? micronesiaNudge[1]
-                    : useNorthernAmericaZoom
-                      ? -100
-                      : useEasternEuropeZoom
-                        ? -150
-                        : 0,
-                });
-                const selectionLabel = `${d.name} (sub-region)`;
-                setSelectionDisplay({
-                  label: selectionLabel,
-                  fact: getSelectionFact({ name: d.name, kind: "subregion" }),
+                zoomToSubregion(d);
+              } else {
+                subregionLabelsGroup.classed("is-hidden", false);
+                countryLabelsGroup.classed("is-hidden", true);
+              }
+              const selectionLabel = `${d.name} (sub-region)`;
+              setSelectionDisplay({
+                label: selectionLabel,
+                fact: getSelectionFact({ name: d.name, kind: "subregion" }),
                 });
                 handleGameGuess("subregion", { subregion: d });
               });
@@ -3841,6 +3842,7 @@
 
           // Draw sub-region countries (hidden until a sub-region is selected).
           function drawSubregionCountries(subregion) {
+            subregionLabelsGroup.classed("is-hidden", true);
             subregionCountriesGroup
               .selectAll("path")
               .data(subregion.features)
@@ -4027,6 +4029,8 @@
             drawSubregions(region);
             subregionGroup.classed("is-hidden", false);
             subregionLabelsGroup.classed("is-hidden", false);
+            subregionGroup.raise();
+            subregionLabelsGroup.raise();
             regionLabelsGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
             if (region.name !== "Oceania") {
@@ -4040,7 +4044,9 @@
             subregionCountriesGroup.classed("is-hidden", false);
             countryLabelsGroup.classed("is-hidden", false);
             subregionLabelsGroup.classed("is-hidden", true);
-            zoomToGeometry(subregion.geometry, { duration: 450, padding: 1.05, maxScale: 10 });
+            subregionCountriesGroup.raise();
+            countryLabelsGroup.raise();
+            zoomToSubregion(subregion);
           }
 
           function startRound() {
@@ -4104,47 +4110,22 @@
                 .selectAll(".region")
                 .filter((d) => String(d.code) === String(target.region.code))
                 .classed("is-revealed", true);
-              regionLabelsGroup.classed("is-hidden", false);
               return;
             }
             if (target.kind === "subregion") {
-              configureRegionView();
-              drawSubregions(target.region);
-              subregionGroup.classed("is-hidden", false);
-              subregionGroup.raise();
-              regionGroup.lower();
-              subregionCountriesGroup.classed("is-hidden", true);
-              regionLabelsGroup.classed("is-hidden", true);
-              subregionLabelsGroup.classed("is-hidden", false);
-              countryLabelsGroup.classed("is-hidden", true);
-              subregionLabelsGroup.raise();
-              resetZoom();
+              configureSubregionView(target.region);
               subregionGroup
                 .selectAll(".subregion")
                 .filter((d) => String(d.code) === String(target.subregion.code))
                 .classed("is-revealed", true);
               return;
             }
-            configureRegionView();
-            drawSubregions(target.region);
-            subregionGroup.classed("is-hidden", true);
-            regionGroup.lower();
-            subregionCountriesGroup.classed("is-hidden", true);
-            regionLabelsGroup.classed("is-hidden", true);
-            subregionLabelsGroup.classed("is-hidden", true);
-            countryLabelsGroup.classed("is-hidden", true);
-            resetZoom();
-            drawSubregionCountries(target.subregion);
-            subregionCountriesGroup.classed("is-hidden", false);
-            subregionCountriesGroup.raise();
-            countryLabelsGroup.classed("is-hidden", false);
+            configureCountryView(target.region, target.subregion);
             const numericKey = normalizeNumeric(target.feature.id);
-            const matchCountry = (d) => normalizeNumeric(d.id) === numericKey;
             subregionCountriesGroup
               .selectAll(".country")
-              .filter(matchCountry)
+              .filter((d) => normalizeNumeric(d.id) === numericKey)
               .classed("is-revealed", true);
-            countriesGroup.selectAll(".country").filter(matchCountry).classed("is-revealed", true);
           }
 
           function handleGameGuess(kind, payload) {
