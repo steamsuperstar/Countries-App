@@ -4138,6 +4138,7 @@
             resetZoom();
             drawSubregionCountries(target.subregion);
             subregionCountriesGroup.classed("is-hidden", false);
+            subregionCountriesGroup.raise();
             countryLabelsGroup.classed("is-hidden", false);
             const numericKey = normalizeNumeric(target.feature.id);
             const matchCountry = (d) => normalizeNumeric(d.id) === numericKey;
