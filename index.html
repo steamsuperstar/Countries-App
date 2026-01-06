@@ -3727,11 +3727,13 @@
               .data(regions)
               .join("path")
               .attr("class", "region")
-              .attr("d", (d) => path(d.geometry))
-              .on("click", function (event, d) {
-                event.stopPropagation();
-                clearSelections();
-                d3.select(this).classed("is-selected", true);
+            .attr("d", (d) => path(d.geometry))
+            .on("click", function (event, d) {
+              event.stopPropagation();
+              clearSelections();
+              d3.select(this).classed("is-selected", true);
+              const isRegionGame = gameState?.active && gameState.mode === "region";
+              if (!isRegionGame) {
                 drawSubregions(d);
                 subregionGroup.classed("is-hidden", false);
                 subregionGroup.raise();
@@ -3752,11 +3754,12 @@
                     maxScale: useEuropeZoom ? 9 : 8,
                   });
                 }
-                const selectionLabel = `${d.name} (region)`;
-                setSelectionDisplay({
-                  label: selectionLabel,
-                  fact: getSelectionFact({ name: d.name, kind: "region" }),
-                });
+              }
+              const selectionLabel = `${d.name} (region)`;
+              setSelectionDisplay({
+                label: selectionLabel,
+                fact: getSelectionFact({ name: d.name, kind: "region" }),
+              });
                 handleGameGuess("region", { region: d });
               });
 
@@ -3780,11 +3783,13 @@
               .data(region.subregions, (d) => d.code)
               .join("path")
               .attr("class", "subregion")
-              .attr("d", (d) => path(d.geometry))
-              .on("click", function (event, d) {
-                event.stopPropagation();
-                clearSelections({ keepRegion: true, keepSubregions: true });
-                d3.select(this).classed("is-selected", true);
+            .attr("d", (d) => path(d.geometry))
+            .on("click", function (event, d) {
+              event.stopPropagation();
+              clearSelections({ keepRegion: true, keepSubregions: true });
+              d3.select(this).classed("is-selected", true);
+              const isSubregionGame = gameState?.active && gameState.mode === "subregion";
+              if (!isSubregionGame) {
                 drawSubregionCountries(d);
                 subregionCountriesGroup.classed("is-hidden", false);
                 subregionCountriesGroup.raise();
@@ -3796,10 +3801,14 @@
                 }
                 countryLabelsGroup.raise();
                 zoomToSubregion(d);
-                const selectionLabel = `${d.name} (sub-region)`;
-                setSelectionDisplay({
-                  label: selectionLabel,
-                  fact: getSelectionFact({ name: d.name, kind: "subregion" }),
+              } else {
+                subregionLabelsGroup.classed("is-hidden", false);
+                countryLabelsGroup.classed("is-hidden", true);
+              }
+              const selectionLabel = `${d.name} (sub-region)`;
+              setSelectionDisplay({
+                label: selectionLabel,
+                fact: getSelectionFact({ name: d.name, kind: "subregion" }),
                 });
                 handleGameGuess("subregion", { subregion: d });
               });
