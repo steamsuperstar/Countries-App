@@ -3657,7 +3657,10 @@
                 regionGroup.lower();
                 subregionCountriesGroup.classed("is-hidden", true);
                 regionLabelsGroup.classed("is-hidden", true);
-                subregionLabelsGroup.classed("is-hidden", false);
+                subregionLabelsGroup.classed(
+                  "is-hidden",
+                  gameState?.active && gameState.mode === "subregion"
+                );
                 countryLabelsGroup.classed("is-hidden", true);
                 subregionLabelsGroup.raise();
                 if (d.name !== "Oceania") {
