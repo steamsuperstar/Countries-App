@@ -4019,6 +4019,8 @@
             drawSubregions(region);
             subregionGroup.classed("is-hidden", false);
             subregionLabelsGroup.classed("is-hidden", false);
+            subregionGroup.raise();
+            subregionLabelsGroup.raise();
             regionLabelsGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
             if (region.name !== "Oceania") {
