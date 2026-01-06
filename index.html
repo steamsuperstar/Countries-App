@@ -44,6 +44,73 @@
         min-height: 0;
       }
 
+      .game-panel {
+        display: grid;
+        gap: 8px;
+        padding: 16px 12px 8px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .game-panel h2 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .game-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .game-controls select,
+      .game-controls button {
+        font-size: 0.95rem;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #cbd5f5;
+        background: #ffffff;
+      }
+
+      .game-controls button {
+        background: #1d4ed8;
+        color: #ffffff;
+        border-color: #1d4ed8;
+        cursor: pointer;
+      }
+
+      .game-controls button:disabled {
+        background: #94a3b8;
+        border-color: #94a3b8;
+        cursor: not-allowed;
+      }
+
+      .game-status {
+        margin: 0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        background: #e2e8f0;
+        color: #1f2933;
+      }
+
+      .game-status.is-correct {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .game-status.is-incorrect {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .game-hint {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #334155;
+      }
+
       svg {
         width: 100%;
         height: 100%;
@@ -66,6 +133,12 @@
         fill: #f97316;
       }
 
+      .country.is-revealed {
+        fill: #ef4444;
+        stroke: #7f1d1d;
+        stroke-width: 0.8;
+      }
+
       .region {
         fill: #c9f0d3;
         stroke: #2f855a;
@@ -82,6 +155,12 @@
         fill: #10b981;
       }
 
+      .region.is-revealed {
+        fill: #16a34a;
+        stroke: #166534;
+        stroke-width: 1;
+      }
+
       .subregion {
         fill: #cde8f9;
         stroke: #285a84;
@@ -96,6 +175,12 @@
 
       .subregion.is-selected {
         fill: #0ea5e9;
+      }
+
+      .subregion.is-revealed {
+        fill: #2563eb;
+        stroke: #1e3a8a;
+        stroke-width: 0.9;
       }
 
       .label {
@@ -156,6 +241,21 @@
   </head>
   <body>
     <div class="map-card">
+      <section class="game-panel" aria-label="Knowledge game controls">
+        <h2>Knowledge Game</h2>
+        <div class="game-controls">
+          <label for="game-mode">Target:</label>
+          <select id="game-mode">
+            <option value="region">Region</option>
+            <option value="subregion">Sub-region</option>
+            <option value="country">Country</option>
+          </select>
+          <button id="start-round" type="button">Start round</button>
+          <button id="reveal-answer" type="button" disabled>Reveal on map</button>
+        </div>
+        <p id="game-status" class="game-status">Start a round to begin.</p>
+        <p id="game-hint" class="game-hint"></p>
+      </section>
       <div class="map-shell">
         <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
         <div id="selected-country" class="selected-label">Selected: None</div>
@@ -607,6 +707,14 @@
               geometry: safeMerge(geometries),
             };
           }).filter((region) => region.geometry && region.subregions.length > 0);
+
+          const regionByCode = new Map(regions.map((region) => [String(region.code), region]));
+          const subregionByCode = new Map(
+            subregions.map((subregion) => [String(subregion.code), subregion])
+          );
+          const countryFeatureByNumeric = new Map(
+            countries.map((feature) => [normalizeNumeric(feature.id), feature])
+          );
 
           const regionFacts = new Map([
             [
@@ -3524,6 +3632,7 @@
                   currencyName: getCountryCurrency(countryName, d.id),
                   languages: getCountryLanguages(countryName, d.id),
                 });
+                handleGameGuess("country", { feature: d });
               });
           }
 
@@ -3555,7 +3664,10 @@
                 regionGroup.lower();
                 subregionCountriesGroup.classed("is-hidden", true);
                 regionLabelsGroup.classed("is-hidden", true);
-                subregionLabelsGroup.classed("is-hidden", false);
+                subregionLabelsGroup.classed(
+                  "is-hidden",
+                  gameState?.active && gameState.mode === "subregion"
+                );
                 countryLabelsGroup.classed("is-hidden", true);
                 subregionLabelsGroup.raise();
                 if (d.name !== "Oceania") {
@@ -3571,6 +3683,7 @@
                   label: selectionLabel,
                   fact: getSelectionFact({ name: d.name, kind: "region" }),
                 });
+                handleGameGuess("region", { region: d });
               });
 
             regionLabelsGroup
@@ -3586,6 +3699,8 @@
 
           // Draw each sub-region for the selected region.
           function drawSubregions(region) {
+            const hideSubregionLabels =
+              gameState?.active && gameState.mode === "subregion";
             subregionGroup
               .selectAll("path")
               .data(region.subregions, (d) => d.code)
@@ -3600,7 +3715,11 @@
                 subregionCountriesGroup.classed("is-hidden", false);
                 subregionCountriesGroup.raise();
                 subregionLabelsGroup.classed("is-hidden", true);
-                countryLabelsGroup.classed("is-hidden", false);
+                if (gameState?.active && gameState.mode === "country") {
+                  countryLabelsGroup.classed("is-hidden", true);
+                } else {
+                  countryLabelsGroup.classed("is-hidden", false);
+                }
                 countryLabelsGroup.raise();
                 const deepZoomSubregions = new Set(["151", "21", "54"]);
                 const isDeepZoom = deepZoomSubregions.has(String(d.code));
@@ -3690,10 +3809,11 @@
                   label: selectionLabel,
                   fact: getSelectionFact({ name: d.name, kind: "subregion" }),
                 });
+                handleGameGuess("subregion", { subregion: d });
               });
 
             subregionLabelsGroup
-              .classed("is-hidden", false)
+              .classed("is-hidden", hideSubregionLabels ? true : false)
               .selectAll("text")
               .data(region.subregions, (d) => d.code)
               .join("text")
@@ -3744,10 +3864,14 @@
                   currencyName: getCountryCurrency(countryName, d.id),
                   languages: getCountryLanguages(countryName, d.id),
                 });
+                handleGameGuess("country", { feature: d });
               });
 
             countryLabelsGroup
-              .classed("is-hidden", false)
+              .classed(
+                "is-hidden",
+                gameState?.active && gameState.mode === "country" ? true : false
+              )
               .selectAll("text")
               .data(subregion.features, (d) => d.id)
               .join("text")
@@ -3800,7 +3924,281 @@
           }
 
           // -----------------------------
-          // 5) Helper functions
+          // 5) Game mode logic
+          // -----------------------------
+          const gameModeSelect = document.getElementById("game-mode");
+          const startRoundButton = document.getElementById("start-round");
+          const revealButton = document.getElementById("reveal-answer");
+          const gameStatus = document.getElementById("game-status");
+          const gameHint = document.getElementById("game-hint");
+
+          const gameState = {
+            active: false,
+            mode: "region",
+            target: null,
+            prompt: "",
+          };
+
+          function setGameStatus({ message, state } = {}) {
+            if (!gameStatus) return;
+            gameStatus.textContent = message ?? "";
+            gameStatus.classList.remove("is-correct", "is-incorrect");
+            if (state === "correct") {
+              gameStatus.classList.add("is-correct");
+            }
+            if (state === "incorrect") {
+              gameStatus.classList.add("is-incorrect");
+            }
+          }
+
+          function setGameHint(text) {
+            if (!gameHint) return;
+            gameHint.textContent = text ?? "";
+          }
+
+          function setRevealEnabled(enabled) {
+            if (!revealButton) return;
+            revealButton.disabled = !enabled;
+          }
+
+          function clearRevealed() {
+            regionGroup.selectAll(".region").classed("is-revealed", false);
+            subregionGroup.selectAll(".subregion").classed("is-revealed", false);
+            countriesGroup.selectAll(".country").classed("is-revealed", false);
+            subregionCountriesGroup.selectAll(".country").classed("is-revealed", false);
+          }
+
+          function pickRandom(items) {
+            return items[Math.floor(Math.random() * items.length)];
+          }
+
+          function getTargetCountryName(target) {
+            return (
+              target?.feature?.properties?.name ||
+              target?.row?.english_short ||
+              target?.row?.cldr_name ||
+              "Unknown country"
+            );
+          }
+
+          function buildHint(target) {
+            if (!target) return "";
+            if (target.kind === "region") {
+              const exampleSubregion = target.region.subregions[0]?.name;
+              return exampleSubregion
+                ? `Hint: It includes ${exampleSubregion}.`
+                : "Hint: It contains multiple sub-regions.";
+            }
+            if (target.kind === "subregion") {
+              return `Hint: It is part of ${target.region.name}.`;
+            }
+            if (target.kind === "country") {
+              const name = getTargetCountryName(target);
+              const numeric = target.feature?.id;
+              const capital = getCountryCapital(name, numeric);
+              if (capital) {
+                return `Hint: The capital is ${capital}.`;
+              }
+              const currency = getCountryCurrency(name, numeric);
+              if (currency) {
+                return `Hint: The currency is ${currency}.`;
+              }
+              const languages = getCountryLanguages(name, numeric);
+              if (languages) {
+                return `Hint: Languages include ${languages}.`;
+              }
+              return `Hint: It is in ${target.subregion.name}.`;
+            }
+            return "";
+          }
+
+          function configureRegionView() {
+            clearSelections();
+            drawRegions();
+            regionLabelsGroup.classed("is-hidden", false);
+            subregionLabelsGroup.classed("is-hidden", true);
+            countryLabelsGroup.classed("is-hidden", true);
+            resetZoom();
+          }
+
+          function configureSubregionView(region) {
+            clearSelections();
+            drawRegions();
+            drawSubregions(region);
+            subregionGroup.classed("is-hidden", false);
+            subregionLabelsGroup.classed("is-hidden", false);
+            regionLabelsGroup.classed("is-hidden", true);
+            countryLabelsGroup.classed("is-hidden", true);
+            if (region.name !== "Oceania") {
+              zoomToGeometry(region.geometry, { duration: 450, padding: 0.95, maxScale: 8 });
+            }
+          }
+
+          function configureCountryView(region, subregion) {
+            configureSubregionView(region);
+            drawSubregionCountries(subregion);
+            subregionCountriesGroup.classed("is-hidden", false);
+            countryLabelsGroup.classed("is-hidden", false);
+            subregionLabelsGroup.classed("is-hidden", true);
+            zoomToGeometry(subregion.geometry, { duration: 450, padding: 1.05, maxScale: 10 });
+          }
+
+          function startRound() {
+            if (!gameModeSelect) return;
+            clearRevealed();
+            setRevealEnabled(false);
+            setGameHint("");
+            gameState.mode = gameModeSelect.value;
+            gameState.active = true;
+            gameState.target = null;
+            gameState.prompt = "";
+
+            if (gameState.mode === "region") {
+              const region = pickRandom(regions);
+              gameState.target = { kind: "region", region };
+              gameState.prompt = `Find the region: ${region.name}`;
+            }
+
+            if (gameState.mode === "subregion") {
+              const subregion = pickRandom(subregions);
+              const region = regionByCode.get(String(subregion.regionCode));
+              if (!region) return;
+              gameState.target = { kind: "subregion", region, subregion };
+              gameState.prompt = `Find the sub-region: ${subregion.name}`;
+            }
+
+            if (gameState.mode === "country") {
+              const playableRows = validRows.filter((row) =>
+                countryFeatureByNumeric.has(normalizeNumeric(row.numeric))
+              );
+              const row = pickRandom(playableRows);
+              const feature = countryFeatureByNumeric.get(normalizeNumeric(row.numeric));
+              const subregion = subregionByCode.get(String(row.subregion_code));
+              const region = regionByCode.get(String(row.region_code));
+              if (!feature || !subregion || !region) return;
+              const label = getTargetCountryName({ row, feature });
+              gameState.target = { kind: "country", row, feature, subregion, region, label };
+              gameState.prompt = `Find the country: ${label}`;
+            }
+
+            configureRegionView();
+            if (gameState.mode === "region") {
+              regionLabelsGroup.classed("is-hidden", true);
+            }
+            if (gameState.mode === "subregion") {
+              subregionLabelsGroup.classed("is-hidden", true);
+            }
+            if (gameState.mode === "country") {
+              countryLabelsGroup.classed("is-hidden", true);
+            }
+            setSelectionDisplay({ label: "None" });
+            setGameStatus({ message: gameState.prompt });
+          }
+
+          function revealTarget(target) {
+            if (!target) return;
+            clearRevealed();
+            if (target.kind === "region") {
+              configureRegionView();
+              regionGroup
+                .selectAll(".region")
+                .filter((d) => String(d.code) === String(target.region.code))
+                .classed("is-revealed", true);
+              regionLabelsGroup.classed("is-hidden", false);
+              return;
+            }
+            if (target.kind === "subregion") {
+              configureRegionView();
+              drawSubregions(target.region);
+              subregionGroup.classed("is-hidden", false);
+              subregionGroup.raise();
+              regionGroup.lower();
+              subregionCountriesGroup.classed("is-hidden", true);
+              regionLabelsGroup.classed("is-hidden", true);
+              subregionLabelsGroup.classed("is-hidden", false);
+              countryLabelsGroup.classed("is-hidden", true);
+              subregionLabelsGroup.raise();
+              resetZoom();
+              subregionGroup
+                .selectAll(".subregion")
+                .filter((d) => String(d.code) === String(target.subregion.code))
+                .classed("is-revealed", true);
+              return;
+            }
+            configureRegionView();
+            drawSubregions(target.region);
+            subregionGroup.classed("is-hidden", true);
+            regionGroup.lower();
+            subregionCountriesGroup.classed("is-hidden", true);
+            regionLabelsGroup.classed("is-hidden", true);
+            subregionLabelsGroup.classed("is-hidden", true);
+            countryLabelsGroup.classed("is-hidden", true);
+            resetZoom();
+            drawSubregionCountries(target.subregion);
+            subregionCountriesGroup.classed("is-hidden", false);
+            subregionCountriesGroup.raise();
+            countryLabelsGroup.classed("is-hidden", false);
+            const numericKey = normalizeNumeric(target.feature.id);
+            const matchCountry = (d) => normalizeNumeric(d.id) === numericKey;
+            subregionCountriesGroup
+              .selectAll(".country")
+              .filter(matchCountry)
+              .classed("is-revealed", true);
+            countriesGroup.selectAll(".country").filter(matchCountry).classed("is-revealed", true);
+          }
+
+          function handleGameGuess(kind, payload) {
+            if (!gameState.active || !gameState.target) {
+              return;
+            }
+            if (kind !== gameState.target.kind) {
+              return;
+            }
+            if (gameState.target.kind === "region") {
+              regionLabelsGroup.classed("is-hidden", false);
+            }
+            if (gameState.target.kind === "subregion") {
+              subregionLabelsGroup.classed("is-hidden", false);
+            }
+            if (gameState.target.kind === "country") {
+              countryLabelsGroup.classed("is-hidden", false);
+            }
+            let isCorrect = false;
+            if (gameState.target.kind === "region") {
+              isCorrect =
+                payload.region && payload.region.name === gameState.target.region.name;
+            }
+            if (gameState.target.kind === "subregion") {
+              isCorrect =
+                payload.subregion && payload.subregion.name === gameState.target.subregion.name;
+            }
+            if (gameState.target.kind === "country") {
+              isCorrect =
+                payload.feature &&
+                normalizeNumeric(payload.feature.id) ===
+                  normalizeNumeric(gameState.target.feature.id);
+            }
+            if (isCorrect) {
+              setGameStatus({ message: `Correct! ${gameState.prompt}`, state: "correct" });
+              setGameHint("");
+              setRevealEnabled(false);
+            } else {
+              setGameStatus({ message: `Incorrect. ${gameState.prompt}`, state: "incorrect" });
+              setGameHint(buildHint(gameState.target));
+              setRevealEnabled(true);
+            }
+          }
+
+          if (startRoundButton) {
+            startRoundButton.addEventListener("click", startRound);
+          }
+
+          if (revealButton) {
+            revealButton.addEventListener("click", () => revealTarget(gameState.target));
+          }
+
+          // -----------------------------
+          // 6) Helper functions
           // -----------------------------
           function clearSelections(options = {}) {
             countriesGroup.selectAll(".country").classed("is-selected", false);
