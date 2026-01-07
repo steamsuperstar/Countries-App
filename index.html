@@ -54,11 +54,12 @@
         grid-template-columns: minmax(140px, auto) minmax(0, 1fr);
         grid-template-areas:
           "title controls"
-          "status hint";
+          "details details";
         align-items: center;
       }
 
       .game-panel__details {
+        grid-area: details;
         display: grid;
         gap: 6px;
       }
@@ -123,7 +124,6 @@
         background: #e2e8f0;
         color: #1f2933;
         font-size: 0.95rem;
-        grid-area: status;
       }
 
       .game-status.is-correct {
@@ -140,7 +140,6 @@
         margin: 0;
         font-size: 0.95rem;
         color: #334155;
-        grid-area: hint;
       }
 
       @media (max-width: 840px) {
@@ -149,8 +148,7 @@
           grid-template-areas:
             "title"
             "controls"
-            "status"
-            "hint";
+            "details";
         }
 
         .game-controls {
