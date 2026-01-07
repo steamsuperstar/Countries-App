@@ -34,6 +34,7 @@
         padding: 12px;
         margin: 0;
         min-height: 100vh;
+        min-height: 100svh;
         display: flex;
         flex-direction: column;
       }
@@ -41,7 +42,7 @@
       .map-shell {
         position: relative;
         flex: 1 1 auto;
-        min-height: 0;
+        min-height: 360px;
       }
 
       .game-panel {
@@ -134,6 +135,37 @@
 
         .game-controls {
           justify-self: start;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .map-card {
+          padding: 8px;
+        }
+
+        .game-panel {
+          padding: 8px 10px 6px;
+          gap: 6px;
+        }
+
+        .game-controls {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          padding-bottom: 4px;
+        }
+
+        .game-controls label {
+          white-space: nowrap;
+        }
+
+        .game-controls select,
+        .game-controls button {
+          font-size: 0.85rem;
+          padding: 6px 8px;
+        }
+
+        .map-shell {
+          min-height: 60svh;
         }
       }
 
@@ -242,7 +274,8 @@
         border-radius: 8px;
         position: absolute;
         left: 12px;
-        bottom: 12px;
+        right: 12px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
         width: min(560px, 92vw);
         line-height: 1.4;
         min-height: 32px;
@@ -252,6 +285,57 @@
       .selected-label.is-expanded {
         width: min(640px, 94vw);
         min-height: 64px;
+      }
+
+      .selected-label.is-collapsed {
+        width: min(420px, 90vw);
+        min-height: auto;
+        padding: 6px 10px;
+      }
+
+      .selected-label__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .selected-label__title {
+        font-size: 0.95rem;
+      }
+
+      .selected-label__toggle {
+        border: 1px solid #c7d2fe;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #1d4ed8;
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .selected-label__toggle:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .selected-label__content {
+        margin-top: 6px;
+        font-weight: 500;
+        color: #1f2933;
+      }
+
+      .selected-label.is-collapsed .selected-label__content {
+        display: none;
+      }
+
+      @media (max-width: 600px) {
+        .selected-label {
+          left: 8px;
+          right: 8px;
+          width: auto;
+        }
       }
 
       .facts-panel {
@@ -538,7 +622,20 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
       </section>
       <div class="map-shell">
         <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
-        <div id="selected-country" class="selected-label">Selected: None</div>
+        <div id="selected-country" class="selected-label is-collapsed" aria-live="polite">
+          <div class="selected-label__header">
+            <span id="selected-country-title" class="selected-label__title">Selected: None</span>
+            <button
+              id="selected-toggle"
+              class="selected-label__toggle"
+              type="button"
+              aria-expanded="false"
+            >
+              Show details
+            </button>
+          </div>
+          <div id="selected-country-details" class="selected-label__content"></div>
+        </div>
       </div>
       <section class="facts-panel" aria-label="UN M49 fun social facts">
       </section>
@@ -5175,6 +5272,33 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             }
           }
 
+          const selectionPanel = document.getElementById("selected-country");
+          const selectionTitle = document.getElementById("selected-country-title");
+          const selectionDetails = document.getElementById("selected-country-details");
+          const selectionToggle = document.getElementById("selected-toggle");
+          let currentSelectionLabel = "None";
+          let isUserCollapsed = false;
+
+          function updateSelectionPanelState({ selection, hasDetails }) {
+            const shouldCollapse = selection === "None" || isUserCollapsed;
+            selectionPanel.classList.toggle("is-collapsed", shouldCollapse);
+            selectionPanel.classList.toggle("is-expanded", hasDetails && !shouldCollapse);
+            selectionToggle.setAttribute("aria-expanded", String(!shouldCollapse));
+            selectionToggle.textContent = shouldCollapse ? "Show details" : "Hide details";
+            selectionToggle.disabled = selection === "None";
+          }
+
+          selectionToggle.addEventListener("click", () => {
+            if (currentSelectionLabel === "None") {
+              return;
+            }
+            isUserCollapsed = !isUserCollapsed;
+            updateSelectionPanelState({
+              selection: currentSelectionLabel,
+              hasDetails: selectionDetails.innerHTML.trim() !== "",
+            });
+          });
+
           function setSelectionDisplay({
             label,
             fact,
@@ -5185,7 +5309,18 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             languages,
           } = {}) {
             const selection = label ?? "None";
+            const previousSelection = currentSelectionLabel;
+            currentSelectionLabel = selection;
+            if (selection === "None" || previousSelection === "None") {
+              isUserCollapsed = false;
+            }
             const detailLines = [];
+            if (formalName && selection !== "None") {
+              detailLines.push(`<span>Formal name: ${formalName}</span>`);
+            }
+            if (dependency && selection !== "None") {
+              detailLines.push(`<span>Status: ${dependency}</span>`);
+            }
             if (capital) {
               detailLines.push(`<span>Capital: ${capital}</span>`);
             }
@@ -5195,27 +5330,15 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             if (currencyName) {
               detailLines.push(`<span>Currency: ${currencyName}</span>`);
             }
-            const formalSuffix =
-              formalName && selection !== "None" ? `, formally ${formalName}` : "";
-            const dependencySuffix =
-              dependency && selection !== "None" ? `, ${dependency}` : "";
-            const selectionLine = `Selected: ${selection}${formalSuffix}${dependencySuffix}`;
-            const detailText = detailLines.length
-              ? `<br>${detailLines.join("<br>")}`
-              : "";
-            const factLine = fact ? `<span>${fact}</span>` : "";
-            const factText =
-              factLine && (detailLines.length || selection !== "None")
-                ? `<br><br>${factLine}`
-                : factLine
-                  ? `<br>${factLine}`
-                  : "";
-            d3.select("#selected-country")
-              .classed(
-                "is-expanded",
-                Boolean(formalName || dependency || capital || currencyName || languages || fact)
-              )
-              .html(`${selectionLine}${detailText}${factText}`);
+            if (fact) {
+              detailLines.push(`<span>${fact}</span>`);
+            }
+
+            selectionTitle.textContent = `Selected: ${selection}`;
+            selectionDetails.innerHTML = detailLines.join("<br>");
+
+            const hasDetails = detailLines.length > 0;
+            updateSelectionPanelState({ selection, hasDetails });
           }
 
           function getSelectionFact(selection) {
