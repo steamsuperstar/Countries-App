@@ -653,7 +653,7 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
         </div>
       </section>
       <div class="map-shell">
-        <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
+        <svg id="world-map" aria-label="World map"></svg>
         <div id="selected-country" class="selected-label is-collapsed" aria-live="polite">
           <div class="selected-label__header">
             <span id="selected-country-title" class="selected-label__title">Selected: None</span>
@@ -1664,16 +1664,31 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
       // -----------------------------
       const svg = d3.select("#world-map");
       const mapGroup = svg.append("g").attr("class", "map-root");
-      const width = 960;
-      const height = 520;
+      const mapShell = document.querySelector(".map-shell");
+      let width = 960;
+      let height = 520;
 
       // -----------------------------
       // 2) Projection + path generator
       // -----------------------------
       // Equal Earth is a good choice for thematic maps because it preserves
       // area well while keeping continents visually familiar.
-      const projection = d3.geoEqualEarth().fitSize([width, height], { type: "Sphere" });
-      const path = d3.geoPath(projection);
+      let projection = d3.geoEqualEarth();
+      let path = d3.geoPath(projection);
+
+      function updateProjectionSize() {
+        if (!mapShell) return false;
+        const { width: nextWidth, height: nextHeight } = mapShell.getBoundingClientRect();
+        if (!nextWidth || !nextHeight) return false;
+        width = nextWidth;
+        height = nextHeight;
+        svg.attr("viewBox", `0 0 ${width} ${height}`);
+        projection = d3.geoEqualEarth().fitSize([width, height], { type: "Sphere" });
+        path = d3.geoPath(projection);
+        return true;
+      }
+
+      updateProjectionSize();
 
       // -----------------------------
       // 3) Data loading
@@ -4821,6 +4836,47 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               });
           }
 
+          const countryOffsets = new Map([
+            ["Antigua and Barbuda", [6, -4]],
+            ["Barbados", [6, 6]],
+            ["Dominica", [-6, -6]],
+            ["Grenada", [8, 8]],
+            ["Saint Kitts and Nevis", [10, -2]],
+            ["Saint Lucia", [6, 10]],
+            ["Saint Vincent and the Grenadines", [10, 12]],
+            ["Trinidad and Tobago", [12, 10]],
+            ["Haiti", [-6, -4]],
+            ["Dominican Republic", [10, 0]],
+          ]);
+
+          function getRegionLabelPosition(region) {
+            return path.centroid(region.geometry);
+          }
+
+          function getSubregionLabelPosition(subregion) {
+            const [x, y] = path.centroid(subregion.geometry);
+            if (subregion.name === "Micronesia") {
+              const estimatedCharWidth = 7.8;
+              return [x + subregion.name.length * estimatedCharWidth * 2, y - 10];
+            }
+            if (subregion.name === "Western Europe") {
+              return [x, y - 12];
+            }
+            return [x, y];
+          }
+
+          function getCountryLabelPosition(feature) {
+            const [x, y] = path.centroid(feature);
+            if (feature.properties.name === "France") {
+              return [x + 20, y - 24];
+            }
+            if (countryOffsets.has(feature.properties.name)) {
+              const [offsetX, offsetY] = countryOffsets.get(feature.properties.name);
+              return [x + offsetX, y + offsetY];
+            }
+            return [x, y];
+          }
+
           function drawRegions() {
             const hasRegions = regions.length > 0;
             regionGroup.classed("is-hidden", !hasRegions);
@@ -4880,8 +4936,8 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               .data(regions, (d) => d.code)
               .join("text")
               .attr("class", "label region-label")
-              .attr("x", (d) => path.centroid(d.geometry)[0])
-              .attr("y", (d) => path.centroid(d.geometry)[1])
+              .attr("x", (d) => getRegionLabelPosition(d)[0])
+              .attr("y", (d) => getRegionLabelPosition(d)[1])
               .text((d) => d.name);
           }
 
@@ -4930,24 +4986,8 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               .data(region.subregions, (d) => d.code)
               .join("text")
               .attr("class", "label subregion-label")
-              .attr("x", (d) => {
-                const [x, y] = path.centroid(d.geometry);
-                if (d.name === "Micronesia") {
-                  const estimatedCharWidth = 7.8;
-                  return x + d.name.length * estimatedCharWidth * 2;
-                }
-                return x;
-              })
-              .attr("y", (d) => {
-                const [x, y] = path.centroid(d.geometry);
-                if (d.name === "Micronesia") {
-                  return y - 10;
-                }
-                if (d.name === "Western Europe") {
-                  return y - 12;
-                }
-                return y;
-              })
+              .attr("x", (d) => getSubregionLabelPosition(d)[0])
+              .attr("y", (d) => getSubregionLabelPosition(d)[1])
               .text((d) => d.name);
           }
 
@@ -4989,51 +5029,30 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               .data(subregion.features, (d) => d.id)
               .join("text")
               .attr("class", "label country-label")
-              .attr("x", (d) => {
-                const [x, y] = path.centroid(d);
-                if (d.properties.name === "France") {
-                  return x + 20;
-                }
-                const countryOffsets = new Map([
-                  ["Antigua and Barbuda", [6, -4]],
-                  ["Barbados", [6, 6]],
-                  ["Dominica", [-6, -6]],
-                  ["Grenada", [8, 8]],
-                  ["Saint Kitts and Nevis", [10, -2]],
-                  ["Saint Lucia", [6, 10]],
-                  ["Saint Vincent and the Grenadines", [10, 12]],
-                  ["Trinidad and Tobago", [12, 10]],
-                  ["Haiti", [-6, -4]],
-                  ["Dominican Republic", [10, 0]],
-                ]);
-                if (countryOffsets.has(d.properties.name)) {
-                  return x + countryOffsets.get(d.properties.name)[0];
-                }
-                return x;
-              })
-              .attr("y", (d) => {
-                const [x, y] = path.centroid(d);
-                if (d.properties.name === "France") {
-                  return y - 24;
-                }
-                const countryOffsets = new Map([
-                  ["Antigua and Barbuda", [6, -4]],
-                  ["Barbados", [6, 6]],
-                  ["Dominica", [-6, -6]],
-                  ["Grenada", [8, 8]],
-                  ["Saint Kitts and Nevis", [10, -2]],
-                  ["Saint Lucia", [6, 10]],
-                  ["Saint Vincent and the Grenadines", [10, 12]],
-                  ["Trinidad and Tobago", [12, 10]],
-                  ["Haiti", [-6, -4]],
-                  ["Dominican Republic", [10, 0]],
-                ]);
-                if (countryOffsets.has(d.properties.name)) {
-                  return y + countryOffsets.get(d.properties.name)[1];
-                }
-                return y;
-              })
+              .attr("x", (d) => getCountryLabelPosition(d)[0])
+              .attr("y", (d) => getCountryLabelPosition(d)[1])
               .text((d) => d.properties.name || "");
+          }
+
+          function refreshMapLayout() {
+            if (!updateProjectionSize()) return;
+            countriesGroup.selectAll("path").attr("d", path);
+            regionGroup.selectAll("path").attr("d", (d) => path(d.geometry));
+            subregionGroup.selectAll("path").attr("d", (d) => path(d.geometry));
+            subregionCountriesGroup.selectAll("path").attr("d", path);
+            regionLabelsGroup
+              .selectAll("text")
+              .attr("x", (d) => getRegionLabelPosition(d)[0])
+              .attr("y", (d) => getRegionLabelPosition(d)[1]);
+            subregionLabelsGroup
+              .selectAll("text")
+              .attr("x", (d) => getSubregionLabelPosition(d)[0])
+              .attr("y", (d) => getSubregionLabelPosition(d)[1]);
+            countryLabelsGroup
+              .selectAll("text")
+              .attr("x", (d) => getCountryLabelPosition(d)[0])
+              .attr("y", (d) => getCountryLabelPosition(d)[1]);
+            resetZoom();
           }
 
           // -----------------------------
@@ -5470,8 +5489,20 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             return entry.fact;
           }
 
+          if (mapShell) {
+            if ("ResizeObserver" in window) {
+              const resizeObserver = new ResizeObserver(() => {
+                refreshMapLayout();
+              });
+              resizeObserver.observe(mapShell);
+            } else {
+              window.addEventListener("resize", refreshMapLayout);
+            }
+          }
+
           drawCountries();
           drawRegions();
+          refreshMapLayout();
           setSelectionDisplay({ label: "None" });
         }
       );
