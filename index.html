@@ -58,16 +58,12 @@
         align-items: center;
       }
 
-      .game-panel.is-collapsed {
-        padding-bottom: 8px;
-      }
-
       .game-panel__details {
         display: grid;
         gap: 6px;
       }
 
-      .game-panel.is-collapsed .game-panel__details {
+      .game-panel.is-inactive .game-panel__details {
         display: none;
       }
 
@@ -108,10 +104,15 @@
         cursor: not-allowed;
       }
 
-      .game-controls .game-details-toggle {
+      .game-controls .game-start-toggle,
+      .game-controls .game-end-toggle {
         background: #ffffff;
         color: #1d4ed8;
         border-color: #cbd5f5;
+      }
+
+      .game-panel.is-inactive .game-controls > *:not(.game-start-toggle) {
+        display: none;
       }
 
       .game-status {
@@ -181,10 +182,6 @@
         .game-controls button {
           font-size: 0.85rem;
           padding: 6px 8px;
-        }
-
-        .game-panel.is-collapsed {
-          padding-bottom: 6px;
         }
 
         .map-shell {
@@ -628,9 +625,12 @@ YEM,967,YEM,ye,Yes,887,269,YM,YE,YE,YEM,YEM,YAR,la República del Yemen,1,,Yéme
 ZAM,260,ZMB,za,Yes,894,270,ZA,ZB,ZM,ZMB,ZAM,Z,la República de Zambia,1,14,Zambie,Zambie (la),Zambian Kwacha,Республика Замбия,Zambia,ZMW,,Zambia,967,赞比亚共和国,la République de Zambie,Замбия,894,202,2,زامبيا,2,جمهورية زامبيا,赞比亚,x,Eastern Africa,Zambia,the Republic of Zambia,赞比亚,Zambia,ZAMBIA,x,Africa,زامبيا,Sub-Saharan Africa,Замбия,World,Lusaka,AF,.zm,"en-ZM,bem,loz,lun,lue,ny,toi",895949,Zambia,Y4,https://www.wikidata.org/wiki/Q953
 ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zimbabwe,Zimbabwe (le),Zimbabwe Gold,Республика Зимбабве,Zimbabwe,ZWG,,Zimbabwe,924,津巴布韦共和国,la République du Zimbabwe,Зимбабве,716,202,2,زمبابوي,2,جمهورية زمبابوي,津巴布韦,x,Eastern Africa,Zimbabwe,the Republic of Zimbabwe,津巴布韦,Zimbabwe,ZIMBABWE,,Africa,زمبابوي,Sub-Saharan Africa,Зимбабве,World,Harare,AF,.zw,"en-ZW,sn,nr,nd",878675,Zimbabwe,Y5,https://www.wikidata.org/wiki/Q954</script>
     <div class="map-card">
-      <section class="game-panel" aria-label="Knowledge game controls">
+      <section class="game-panel is-inactive" aria-label="Knowledge game controls">
         <h2>Knowledge Game</h2>
         <div class="game-controls">
+          <button id="game-start-toggle" class="game-start-toggle" type="button">
+            Start game
+          </button>
           <label for="game-mode">Target:</label>
           <select id="game-mode">
             <option value="region">Region</option>
@@ -639,13 +639,8 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
           </select>
           <button id="start-round" type="button">Start round</button>
           <button id="reveal-answer" type="button" disabled>Reveal on map</button>
-          <button
-            id="game-details-toggle"
-            class="game-details-toggle"
-            type="button"
-            aria-expanded="true"
-          >
-            Hide info
+          <button id="game-end-toggle" class="game-end-toggle" type="button">
+            End game
           </button>
         </div>
         <div class="game-panel__details">
@@ -5279,26 +5274,37 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
           }
 
           const gamePanel = document.querySelector(".game-panel");
-          const gameDetailsToggle = document.getElementById("game-details-toggle");
-          let isGameDetailsCollapsed = false;
+          const gameStartToggle = document.getElementById("game-start-toggle");
+          const gameEndToggle = document.getElementById("game-end-toggle");
+          let isGamePanelActive = false;
 
-          function updateGameDetailsState() {
-            if (!gamePanel || !gameDetailsToggle) {
+          function updateGamePanelState() {
+            if (!gamePanel) {
               return;
             }
-            gamePanel.classList.toggle("is-collapsed", isGameDetailsCollapsed);
-            gameDetailsToggle.setAttribute("aria-expanded", String(!isGameDetailsCollapsed));
-            gameDetailsToggle.textContent = isGameDetailsCollapsed ? "Show info" : "Hide info";
+            gamePanel.classList.toggle("is-inactive", !isGamePanelActive);
           }
 
-          if (gameDetailsToggle) {
-            gameDetailsToggle.addEventListener("click", () => {
-              isGameDetailsCollapsed = !isGameDetailsCollapsed;
-              updateGameDetailsState();
+          if (gameStartToggle) {
+            gameStartToggle.addEventListener("click", () => {
+              isGamePanelActive = true;
+              updateGamePanelState();
             });
           }
 
-          updateGameDetailsState();
+          if (gameEndToggle) {
+            gameEndToggle.addEventListener("click", () => {
+              isGamePanelActive = false;
+              gameState.active = false;
+              gameState.target = null;
+              setGameStatus({ message: "Start a round to begin." });
+              setGameHint("");
+              setRevealEnabled(false);
+              updateGamePanelState();
+            });
+          }
+
+          updateGamePanelState();
 
           // -----------------------------
           // 6) Helper functions
