@@ -58,6 +58,19 @@
         align-items: center;
       }
 
+      .game-panel.is-collapsed {
+        padding-bottom: 8px;
+      }
+
+      .game-panel__details {
+        display: grid;
+        gap: 6px;
+      }
+
+      .game-panel.is-collapsed .game-panel__details {
+        display: none;
+      }
+
       .game-panel h2 {
         margin: 0;
         font-size: 1.1rem;
@@ -93,6 +106,12 @@
         background: #94a3b8;
         border-color: #94a3b8;
         cursor: not-allowed;
+      }
+
+      .game-controls .game-details-toggle {
+        background: #ffffff;
+        color: #1d4ed8;
+        border-color: #cbd5f5;
       }
 
       .game-status {
@@ -162,6 +181,10 @@
         .game-controls button {
           font-size: 0.85rem;
           padding: 6px 8px;
+        }
+
+        .game-panel.is-collapsed {
+          padding-bottom: 6px;
         }
 
         .map-shell {
@@ -616,9 +639,19 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
           </select>
           <button id="start-round" type="button">Start round</button>
           <button id="reveal-answer" type="button" disabled>Reveal on map</button>
+          <button
+            id="game-details-toggle"
+            class="game-details-toggle"
+            type="button"
+            aria-expanded="true"
+          >
+            Hide info
+          </button>
         </div>
-        <p id="game-status" class="game-status">Start a round to begin.</p>
-        <p id="game-hint" class="game-hint"></p>
+        <div class="game-panel__details">
+          <p id="game-status" class="game-status">Start a round to begin.</p>
+          <p id="game-hint" class="game-hint"></p>
+        </div>
       </section>
       <div class="map-shell">
         <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
@@ -5244,6 +5277,28 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
           if (revealButton) {
             revealButton.addEventListener("click", () => revealTarget(gameState.target));
           }
+
+          const gamePanel = document.querySelector(".game-panel");
+          const gameDetailsToggle = document.getElementById("game-details-toggle");
+          let isGameDetailsCollapsed = false;
+
+          function updateGameDetailsState() {
+            if (!gamePanel || !gameDetailsToggle) {
+              return;
+            }
+            gamePanel.classList.toggle("is-collapsed", isGameDetailsCollapsed);
+            gameDetailsToggle.setAttribute("aria-expanded", String(!isGameDetailsCollapsed));
+            gameDetailsToggle.textContent = isGameDetailsCollapsed ? "Show info" : "Hide info";
+          }
+
+          if (gameDetailsToggle) {
+            gameDetailsToggle.addEventListener("click", () => {
+              isGameDetailsCollapsed = !isGameDetailsCollapsed;
+              updateGameDetailsState();
+            });
+          }
+
+          updateGameDetailsState();
 
           // -----------------------------
           // 6) Helper functions
