@@ -209,6 +209,12 @@
         fill: #f97316;
       }
 
+      .country.is-correct {
+        fill: #22c55e;
+        stroke: #14532d;
+        stroke-width: 0.8;
+      }
+
       .country.is-revealed {
         fill: #ef4444;
         stroke: #7f1d1d;
@@ -4750,7 +4756,7 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               padding: useWesternEuropeZoom
                 ? 1.25
                 : useNorthernAmericaZoom
-                  ? 0.95
+                  ? 1.4
                   : useEasternEuropeZoom
                     ? 1.15
                     : useShallowerZoom
@@ -4763,7 +4769,7 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               maxScale: useWesternEuropeZoom
                 ? 12
                 : useNorthernAmericaZoom
-                  ? 12
+                  ? 17
                   : useEasternEuropeZoom
                     ? 12
                     : useShallowerZoom
@@ -4773,8 +4779,20 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
                         : isDeepZoom
                         ? 12
                         : 10,
-              xOffset: useMicronesiaZoom ? 24 : useEasternEuropeZoom ? -120 : 0,
-              yOffset: useMicronesiaZoom ? -12 : useNorthernAmericaZoom ? -100 : useEasternEuropeZoom ? -150 : 0,
+              xOffset: useMicronesiaZoom
+                ? 24
+                : useNorthernAmericaZoom
+                  ? 180
+                  : useEasternEuropeZoom
+                    ? -120
+                    : 0,
+              yOffset: useMicronesiaZoom
+                ? -12
+                : useNorthernAmericaZoom
+                  ? 5
+                  : useEasternEuropeZoom
+                    ? -150
+                    : 0,
             });
           }
 
@@ -5221,6 +5239,21 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               .classed("is-revealed", true);
           }
 
+          function markCorrectCountry(target) {
+            const numericKey = normalizeNumeric(target.feature.id);
+            const matchesTarget = (d) => normalizeNumeric(d.id) === numericKey;
+            countriesGroup
+              .selectAll(".country")
+              .filter(matchesTarget)
+              .classed("is-selected", false)
+              .classed("is-correct", true);
+            subregionCountriesGroup
+              .selectAll(".country")
+              .filter(matchesTarget)
+              .classed("is-selected", false)
+              .classed("is-correct", true);
+          }
+
           function handleGameGuess(kind, payload) {
             if (!gameState.active || !gameState.target) {
               return;
@@ -5256,6 +5289,9 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               setGameStatus({ message: `Correct! ${gameState.prompt}`, state: "correct" });
               setGameHint("");
               setRevealEnabled(false);
+              if (gameState.target.kind === "country") {
+                markCorrectCountry(gameState.target);
+              }
             } else {
               setGameStatus({ message: `Incorrect. ${gameState.prompt}`, state: "incorrect" });
               setGameHint(buildHint(gameState.target));
@@ -5308,7 +5344,10 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
           // 6) Helper functions
           // -----------------------------
           function clearSelections(options = {}) {
-            countriesGroup.selectAll(".country").classed("is-selected", false);
+            countriesGroup
+              .selectAll(".country")
+              .classed("is-selected", false)
+              .classed("is-correct", false);
             if (!options.keepRegion) {
               regionGroup.selectAll(".region").classed("is-selected", false);
               subregionGroup.classed("is-hidden", true);
@@ -5323,7 +5362,10 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               subregionLabelsGroup.classed("is-hidden", true);
               countryLabelsGroup.classed("is-hidden", true);
             }
-            subregionCountriesGroup.selectAll(".country").classed("is-selected", false);
+            subregionCountriesGroup
+              .selectAll(".country")
+              .classed("is-selected", false)
+              .classed("is-correct", false);
             subregionCountriesGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
             if (!options.keepRegion && !options.keepSubregions) {
