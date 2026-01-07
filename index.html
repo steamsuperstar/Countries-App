@@ -34,15 +34,16 @@
         padding: 12px;
         margin: 0;
         min-height: 100vh;
-        min-height: 100svh;
-        display: flex;
-        flex-direction: column;
+        height: 100svh;
+        display: grid;
+        grid-template-rows: auto 1fr;
       }
 
       .map-shell {
         position: relative;
         flex: 1 1 auto;
-        min-height: clamp(360px, 72svh, 760px);
+        min-height: 0;
+        height: 100%;
       }
 
       .game-panel {
@@ -162,8 +163,8 @@
         }
 
         .game-panel {
-          padding: 8px 10px 6px;
-          gap: 6px;
+          padding: 6px 8px 4px;
+          gap: 4px;
         }
 
         .game-controls {
@@ -182,9 +183,6 @@
           padding: 6px 8px;
         }
 
-        .map-shell {
-          min-height: 76svh;
-        }
       }
 
       svg {
