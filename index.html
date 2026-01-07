@@ -34,6 +34,7 @@
         padding: 12px;
         margin: 0;
         min-height: 100vh;
+        min-height: 100svh;
         display: flex;
         flex-direction: column;
       }
@@ -41,7 +42,7 @@
       .map-shell {
         position: relative;
         flex: 1 1 auto;
-        min-height: 0;
+        min-height: 360px;
       }
 
       .game-panel {
@@ -53,8 +54,18 @@
         grid-template-columns: minmax(140px, auto) minmax(0, 1fr);
         grid-template-areas:
           "title controls"
-          "status hint";
+          "details details";
         align-items: center;
+      }
+
+      .game-panel__details {
+        grid-area: details;
+        display: grid;
+        gap: 6px;
+      }
+
+      .game-panel.is-inactive .game-panel__details {
+        display: none;
       }
 
       .game-panel h2 {
@@ -94,6 +105,17 @@
         cursor: not-allowed;
       }
 
+      .game-controls .game-start-toggle,
+      .game-controls .game-end-toggle {
+        background: #ffffff;
+        color: #1d4ed8;
+        border-color: #cbd5f5;
+      }
+
+      .game-panel.is-inactive .game-controls > *:not(.game-start-toggle) {
+        display: none;
+      }
+
       .game-status {
         margin: 0;
         padding: 6px 10px;
@@ -102,7 +124,6 @@
         background: #e2e8f0;
         color: #1f2933;
         font-size: 0.95rem;
-        grid-area: status;
       }
 
       .game-status.is-correct {
@@ -119,7 +140,6 @@
         margin: 0;
         font-size: 0.95rem;
         color: #334155;
-        grid-area: hint;
       }
 
       @media (max-width: 840px) {
@@ -128,12 +148,42 @@
           grid-template-areas:
             "title"
             "controls"
-            "status"
-            "hint";
+            "details";
         }
 
         .game-controls {
           justify-self: start;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .map-card {
+          padding: 8px;
+        }
+
+        .game-panel {
+          padding: 8px 10px 6px;
+          gap: 6px;
+        }
+
+        .game-controls {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          padding-bottom: 4px;
+        }
+
+        .game-controls label {
+          white-space: nowrap;
+        }
+
+        .game-controls select,
+        .game-controls button {
+          font-size: 0.85rem;
+          padding: 6px 8px;
+        }
+
+        .map-shell {
+          min-height: 60svh;
         }
       }
 
@@ -242,7 +292,8 @@
         border-radius: 8px;
         position: absolute;
         left: 12px;
-        bottom: 12px;
+        right: 12px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
         width: min(560px, 92vw);
         line-height: 1.4;
         min-height: 32px;
@@ -252,6 +303,57 @@
       .selected-label.is-expanded {
         width: min(640px, 94vw);
         min-height: 64px;
+      }
+
+      .selected-label.is-collapsed {
+        width: min(420px, 90vw);
+        min-height: auto;
+        padding: 6px 10px;
+      }
+
+      .selected-label__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .selected-label__title {
+        font-size: 0.95rem;
+      }
+
+      .selected-label__toggle {
+        border: 1px solid #c7d2fe;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #1d4ed8;
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .selected-label__toggle:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .selected-label__content {
+        margin-top: 6px;
+        font-weight: 500;
+        color: #1f2933;
+      }
+
+      .selected-label.is-collapsed .selected-label__content {
+        display: none;
+      }
+
+      @media (max-width: 600px) {
+        .selected-label {
+          left: 8px;
+          right: 8px;
+          width: auto;
+        }
       }
 
       .facts-panel {
@@ -521,9 +623,12 @@ YEM,967,YEM,ye,Yes,887,269,YM,YE,YE,YEM,YEM,YAR,la República del Yemen,1,,Yéme
 ZAM,260,ZMB,za,Yes,894,270,ZA,ZB,ZM,ZMB,ZAM,Z,la República de Zambia,1,14,Zambie,Zambie (la),Zambian Kwacha,Республика Замбия,Zambia,ZMW,,Zambia,967,赞比亚共和国,la République de Zambie,Замбия,894,202,2,زامبيا,2,جمهورية زامبيا,赞比亚,x,Eastern Africa,Zambia,the Republic of Zambia,赞比亚,Zambia,ZAMBIA,x,Africa,زامبيا,Sub-Saharan Africa,Замбия,World,Lusaka,AF,.zm,"en-ZM,bem,loz,lun,lue,ny,toi",895949,Zambia,Y4,https://www.wikidata.org/wiki/Q953
 ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zimbabwe,Zimbabwe (le),Zimbabwe Gold,Республика Зимбабве,Zimbabwe,ZWG,,Zimbabwe,924,津巴布韦共和国,la République du Zimbabwe,Зимбабве,716,202,2,زمبابوي,2,جمهورية زمبابوي,津巴布韦,x,Eastern Africa,Zimbabwe,the Republic of Zimbabwe,津巴布韦,Zimbabwe,ZIMBABWE,,Africa,زمبابوي,Sub-Saharan Africa,Зимбабве,World,Harare,AF,.zw,"en-ZW,sn,nr,nd",878675,Zimbabwe,Y5,https://www.wikidata.org/wiki/Q954</script>
     <div class="map-card">
-      <section class="game-panel" aria-label="Knowledge game controls">
+      <section class="game-panel is-inactive" aria-label="Knowledge game controls">
         <h2>Knowledge Game</h2>
         <div class="game-controls">
+          <button id="game-start-toggle" class="game-start-toggle" type="button">
+            Start game
+          </button>
           <label for="game-mode">Target:</label>
           <select id="game-mode">
             <option value="region">Region</option>
@@ -532,13 +637,31 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
           </select>
           <button id="start-round" type="button">Start round</button>
           <button id="reveal-answer" type="button" disabled>Reveal on map</button>
+          <button id="game-end-toggle" class="game-end-toggle" type="button">
+            End game
+          </button>
         </div>
-        <p id="game-status" class="game-status">Start a round to begin.</p>
-        <p id="game-hint" class="game-hint"></p>
+        <div class="game-panel__details">
+          <p id="game-status" class="game-status">Start a round to begin.</p>
+          <p id="game-hint" class="game-hint"></p>
+        </div>
       </section>
       <div class="map-shell">
         <svg id="world-map" viewBox="0 0 960 520" aria-label="World map"></svg>
-        <div id="selected-country" class="selected-label">Selected: None</div>
+        <div id="selected-country" class="selected-label is-collapsed" aria-live="polite">
+          <div class="selected-label__header">
+            <span id="selected-country-title" class="selected-label__title">Selected: None</span>
+            <button
+              id="selected-toggle"
+              class="selected-label__toggle"
+              type="button"
+              aria-expanded="false"
+            >
+              Show details
+            </button>
+          </div>
+          <div id="selected-country-details" class="selected-label__content"></div>
+        </div>
       </div>
       <section class="facts-panel" aria-label="UN M49 fun social facts">
       </section>
@@ -5148,6 +5271,39 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             revealButton.addEventListener("click", () => revealTarget(gameState.target));
           }
 
+          const gamePanel = document.querySelector(".game-panel");
+          const gameStartToggle = document.getElementById("game-start-toggle");
+          const gameEndToggle = document.getElementById("game-end-toggle");
+          let isGamePanelActive = false;
+
+          function updateGamePanelState() {
+            if (!gamePanel) {
+              return;
+            }
+            gamePanel.classList.toggle("is-inactive", !isGamePanelActive);
+          }
+
+          if (gameStartToggle) {
+            gameStartToggle.addEventListener("click", () => {
+              isGamePanelActive = true;
+              updateGamePanelState();
+            });
+          }
+
+          if (gameEndToggle) {
+            gameEndToggle.addEventListener("click", () => {
+              isGamePanelActive = false;
+              gameState.active = false;
+              gameState.target = null;
+              setGameStatus({ message: "Start a round to begin." });
+              setGameHint("");
+              setRevealEnabled(false);
+              updateGamePanelState();
+            });
+          }
+
+          updateGamePanelState();
+
           // -----------------------------
           // 6) Helper functions
           // -----------------------------
@@ -5175,6 +5331,33 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             }
           }
 
+          const selectionPanel = document.getElementById("selected-country");
+          const selectionTitle = document.getElementById("selected-country-title");
+          const selectionDetails = document.getElementById("selected-country-details");
+          const selectionToggle = document.getElementById("selected-toggle");
+          let currentSelectionLabel = "None";
+          let isUserCollapsed = false;
+
+          function updateSelectionPanelState({ selection, hasDetails }) {
+            const shouldCollapse = selection === "None" || isUserCollapsed;
+            selectionPanel.classList.toggle("is-collapsed", shouldCollapse);
+            selectionPanel.classList.toggle("is-expanded", hasDetails && !shouldCollapse);
+            selectionToggle.setAttribute("aria-expanded", String(!shouldCollapse));
+            selectionToggle.textContent = shouldCollapse ? "Show details" : "Hide details";
+            selectionToggle.disabled = selection === "None";
+          }
+
+          selectionToggle.addEventListener("click", () => {
+            if (currentSelectionLabel === "None") {
+              return;
+            }
+            isUserCollapsed = !isUserCollapsed;
+            updateSelectionPanelState({
+              selection: currentSelectionLabel,
+              hasDetails: selectionDetails.innerHTML.trim() !== "",
+            });
+          });
+
           function setSelectionDisplay({
             label,
             fact,
@@ -5185,7 +5368,18 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             languages,
           } = {}) {
             const selection = label ?? "None";
+            const previousSelection = currentSelectionLabel;
+            currentSelectionLabel = selection;
+            if (selection === "None" || previousSelection === "None") {
+              isUserCollapsed = false;
+            }
             const detailLines = [];
+            if (formalName && selection !== "None") {
+              detailLines.push(`<span>Formal name: ${formalName}</span>`);
+            }
+            if (dependency && selection !== "None") {
+              detailLines.push(`<span>Status: ${dependency}</span>`);
+            }
             if (capital) {
               detailLines.push(`<span>Capital: ${capital}</span>`);
             }
@@ -5195,27 +5389,15 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
             if (currencyName) {
               detailLines.push(`<span>Currency: ${currencyName}</span>`);
             }
-            const formalSuffix =
-              formalName && selection !== "None" ? `, formally ${formalName}` : "";
-            const dependencySuffix =
-              dependency && selection !== "None" ? `, ${dependency}` : "";
-            const selectionLine = `Selected: ${selection}${formalSuffix}${dependencySuffix}`;
-            const detailText = detailLines.length
-              ? `<br>${detailLines.join("<br>")}`
-              : "";
-            const factLine = fact ? `<span>${fact}</span>` : "";
-            const factText =
-              factLine && (detailLines.length || selection !== "None")
-                ? `<br><br>${factLine}`
-                : factLine
-                  ? `<br>${factLine}`
-                  : "";
-            d3.select("#selected-country")
-              .classed(
-                "is-expanded",
-                Boolean(formalName || dependency || capital || currencyName || languages || fact)
-              )
-              .html(`${selectionLine}${detailText}${factText}`);
+            if (fact) {
+              detailLines.push(`<span>${fact}</span>`);
+            }
+
+            selectionTitle.textContent = `Selected: ${selection}`;
+            selectionDetails.innerHTML = detailLines.join("<br>");
+
+            const hasDetails = detailLines.length > 0;
+            updateSelectionPanelState({ selection, hasDetails });
           }
 
           function getSelectionFact(selection) {
