@@ -4817,7 +4817,7 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               .attr("class", "country")
               .attr("d", path)
               .on("click", function (event, d) {
-                clearSelections();
+                clearSelections({ keepZoom: gameState?.active });
                 d3.select(this).classed("is-selected", true);
                 const countryName = d.properties.name || "Unknown country";
                 setSelectionDisplay({
@@ -5370,7 +5370,9 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               regionLabelsGroup.classed("is-hidden", false);
               subregionLabelsGroup.classed("is-hidden", true);
               countryLabelsGroup.classed("is-hidden", true);
-              resetZoom();
+              if (!options.keepZoom) {
+                resetZoom();
+              }
             }
             if (!options.keepSubregions) {
               subregionGroup.selectAll(".subregion").classed("is-selected", false);
