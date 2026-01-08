@@ -5033,6 +5033,7 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
 
           function refreshMapLayout() {
             if (!updateProjectionSize()) return;
+            const currentTransform = d3.zoomTransform(svg.node());
             countriesGroup.selectAll("path").attr("d", path);
             regionGroup.selectAll("path").attr("d", (d) => path(d.geometry));
             subregionGroup.selectAll("path").attr("d", (d) => path(d.geometry));
@@ -5049,7 +5050,11 @@ ZIM,263,ZWE,rh,Yes,716,271,ZI,ZW,ZW,ZWE,ZIM,ZW,la República de Zimbabwe,1,14,Zi
               .selectAll("text")
               .attr("x", (d) => getCountryLabelPosition(d)[0])
               .attr("y", (d) => getCountryLabelPosition(d)[1]);
-            resetZoom();
+            if (gameState?.active && gameState.mode === "country") {
+              svg.call(zoom.transform, currentTransform);
+            } else {
+              resetZoom();
+            }
           }
 
           // -----------------------------
