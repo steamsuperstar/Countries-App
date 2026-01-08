@@ -10,9 +10,15 @@
         font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
       }
 
+      html,
+      body {
+        height: 100%;
+      }
+
       body {
         margin: 0;
         padding: 0;
+        min-height: 100dvh;
         background: #f7f7fb;
         color: #1f2933;
       }
@@ -33,9 +39,10 @@
         box-shadow: none;
         padding: 12px;
         margin: 0;
-        height: 100svh;
+        height: 100dvh;
+        min-height: 100dvh;
         display: grid;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
       }
 
       .map-shell {
@@ -154,16 +161,25 @@
         .game-controls {
           justify-self: start;
         }
+
+        .map-card {
+          grid-template-rows: auto minmax(65svh, 1fr);
+        }
       }
 
       @media (max-width: 600px) {
         .map-card {
-          padding: 8px;
+          padding: 6px;
+          grid-template-rows: auto minmax(70svh, 1fr);
         }
 
         .game-panel {
           padding: 6px 8px 4px;
           gap: 4px;
+        }
+
+        .map-shell {
+          min-height: 70svh;
         }
 
         .game-controls {
