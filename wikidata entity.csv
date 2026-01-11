@@ -1,0 +1,253 @@
+entity,entityLabel,iso2,iso3,isoNumeric
+http://www.wikidata.org/entity/Q21203,Aruba,AW,ABW,533
+http://www.wikidata.org/entity/Q889,Afghanistan,AF,AFG,4
+http://www.wikidata.org/entity/Q916,Angola,AO,AGO,24
+http://www.wikidata.org/entity/Q25228,Anguilla,AI,AIA,660
+http://www.wikidata.org/entity/Q5689,Åland,AX,ALA,248
+http://www.wikidata.org/entity/Q222,Albania,AL,ALB,8
+http://www.wikidata.org/entity/Q228,Andorra,AD,AND,20
+http://www.wikidata.org/entity/Q25227,Netherlands Antilles,AN,ANT,530
+http://www.wikidata.org/entity/Q878,United Arab Emirates,AE,ARE,784
+http://www.wikidata.org/entity/Q414,Argentina,AR,ARG,32
+http://www.wikidata.org/entity/Q399,Armenia,AM,ARM,51
+http://www.wikidata.org/entity/Q16641,American Samoa,AS,ASM,16
+http://www.wikidata.org/entity/Q21590062,Antarctic Treaty area,AQ,ATA,10
+http://www.wikidata.org/entity/Q129003,French Southern and Antarctic Lands,TF,ATF,260
+http://www.wikidata.org/entity/Q781,Antigua and Barbuda,AG,ATG,28
+http://www.wikidata.org/entity/Q408,Australia,AU,AUS,36
+http://www.wikidata.org/entity/Q40,Austria,AT,AUT,40
+http://www.wikidata.org/entity/Q227,Azerbaijan,AZ,AZE,31
+http://www.wikidata.org/entity/Q967,Burundi,BI,BDI,108
+http://www.wikidata.org/entity/Q31,Belgium,BE,BEL,56
+http://www.wikidata.org/entity/Q962,Benin,BJ,BEN,204
+http://www.wikidata.org/entity/Q27561,Caribbean Netherlands,BQ,BES,535
+http://www.wikidata.org/entity/Q965,Burkina Faso,BF,BFA,854
+http://www.wikidata.org/entity/Q902,Bangladesh,BD,BGD,50
+http://www.wikidata.org/entity/Q219,Bulgaria,BG,BGR,100
+http://www.wikidata.org/entity/Q398,Bahrain,BH,BHR,48
+http://www.wikidata.org/entity/Q778,The Bahamas,BS,BHS,44
+http://www.wikidata.org/entity/Q225,Bosnia and Herzegovina,BA,BIH,70
+http://www.wikidata.org/entity/Q25362,Saint Barthélemy,BL,BLM,652
+http://www.wikidata.org/entity/Q184,Belarus,BY,BLR,112
+http://www.wikidata.org/entity/Q242,Belize,BZ,BLZ,84
+http://www.wikidata.org/entity/Q23635,Bermuda,BM,BMU,60
+http://www.wikidata.org/entity/Q750,Bolivia,BO,BOL,68
+http://www.wikidata.org/entity/Q155,Brazil,BR,BRA,76
+http://www.wikidata.org/entity/Q244,Barbados,BB,BRB,52
+http://www.wikidata.org/entity/Q921,Brunei,BN,BRN,96
+http://www.wikidata.org/entity/Q917,Bhutan,BT,BTN,64
+http://www.wikidata.org/entity/Q23408,Bouvet Island,BV,BVT,74
+http://www.wikidata.org/entity/Q963,Botswana,BW,BWA,72
+http://www.wikidata.org/entity/Q929,Central African Republic,CF,CAF,140
+http://www.wikidata.org/entity/Q16,Canada,CA,CAN,124
+http://www.wikidata.org/entity/Q36004,Cocos (Keeling) Islands,CC,CCK,166
+http://www.wikidata.org/entity/Q39,Switzerland,CH,CHE,756
+http://www.wikidata.org/entity/Q298,Chile,CL,CHL,152
+http://www.wikidata.org/entity/Q148,People's Republic of China,CN,CHN,156
+http://www.wikidata.org/entity/Q1008,Ivory Coast,CI,CIV,384
+http://www.wikidata.org/entity/Q1009,Cameroon,CM,CMR,120
+http://www.wikidata.org/entity/Q974,Democratic Republic of the Congo,CD,COD,180
+http://www.wikidata.org/entity/Q971,Republic of the Congo,CG,COG,178
+http://www.wikidata.org/entity/Q26988,Cook Islands,CK,COK,184
+http://www.wikidata.org/entity/Q739,Colombia,CO,COL,170
+http://www.wikidata.org/entity/Q970,Comoros,KM,COM,174
+http://www.wikidata.org/entity/Q1011,Cape Verde,CV,CPV,132
+http://www.wikidata.org/entity/Q800,Costa Rica,CR,CRI,188
+http://www.wikidata.org/entity/Q241,Cuba,CU,CUB,192
+http://www.wikidata.org/entity/Q25279,Curaçao,CW,CUW,531
+http://www.wikidata.org/entity/Q31063,Christmas Island,CX,CXR,162
+http://www.wikidata.org/entity/Q5785,Cayman Islands,KY,CYM,136
+http://www.wikidata.org/entity/Q229,Cyprus,CY,CYP,196
+http://www.wikidata.org/entity/Q213,Czech Republic,CZ,CZE,203
+http://www.wikidata.org/entity/Q16957,German Democratic Republic,DD,DDR,278
+http://www.wikidata.org/entity/Q183,Germany,DE,DEU,276
+http://www.wikidata.org/entity/Q977,Djibouti,DJ,DJI,262
+http://www.wikidata.org/entity/Q784,Dominica,DM,DMA,212
+http://www.wikidata.org/entity/Q35,Denmark,DK,DNK,208
+http://www.wikidata.org/entity/Q786,Dominican Republic,DO,DOM,214
+http://www.wikidata.org/entity/Q262,Algeria,DZ,DZA,12
+http://www.wikidata.org/entity/Q736,Ecuador,EC,ECU,218
+http://www.wikidata.org/entity/Q79,Egypt,EG,EGY,818
+http://www.wikidata.org/entity/Q986,Eritrea,ER,ERI,232
+http://www.wikidata.org/entity/Q6250,Western Sahara,EH,ESH,732
+http://www.wikidata.org/entity/Q29,Spain,ES,ESP,724
+http://www.wikidata.org/entity/Q191,Estonia,EE,EST,233
+http://www.wikidata.org/entity/Q115,Ethiopia,ET,ETH,231
+http://www.wikidata.org/entity/Q33,Finland,FI,FIN,246
+http://www.wikidata.org/entity/Q712,Fiji,FJ,FJI,242
+http://www.wikidata.org/entity/Q9648,Falkland Islands,FK,FLK,238
+http://www.wikidata.org/entity/Q142,France,FR,FRA,250
+http://www.wikidata.org/entity/Q4628,Faroe Islands,FO,FRO,234
+http://www.wikidata.org/entity/Q702,Federated States of Micronesia,FM,FSM,583
+http://www.wikidata.org/entity/Q1000,Gabon,GA,GAB,266
+http://www.wikidata.org/entity/Q145,United Kingdom,GB,GBR,826
+http://www.wikidata.org/entity/Q230,Georgia,GE,GEO,268
+http://www.wikidata.org/entity/Q25230,Guernsey,GG,GGY,831
+http://www.wikidata.org/entity/Q117,Ghana,GH,GHA,288
+http://www.wikidata.org/entity/Q1410,Gibraltar,GI,GIB,292
+http://www.wikidata.org/entity/Q1006,Guinea,GN,GIN,324
+http://www.wikidata.org/entity/Q17012,Guadeloupe,GP,GLP,312
+http://www.wikidata.org/entity/Q1005,The Gambia,GM,GMB,270
+http://www.wikidata.org/entity/Q1007,Guinea-Bissau,GW,GNB,624
+http://www.wikidata.org/entity/Q983,Equatorial Guinea,GQ,GNQ,226
+http://www.wikidata.org/entity/Q41,Greece,GR,GRC,300
+http://www.wikidata.org/entity/Q769,Grenada,GD,GRD,308
+http://www.wikidata.org/entity/Q223,Greenland,GL,GRL,304
+http://www.wikidata.org/entity/Q774,Guatemala,GT,GTM,320
+http://www.wikidata.org/entity/Q3769,French Guiana,GF,GUF,254
+http://www.wikidata.org/entity/Q16635,Guam,GU,GUM,316
+http://www.wikidata.org/entity/Q734,Guyana,GY,GUY,328
+http://www.wikidata.org/entity/Q8646,Hong Kong,HK,HKG,344
+http://www.wikidata.org/entity/Q131198,Heard Island and McDonald Islands,HM,HMD,334
+http://www.wikidata.org/entity/Q783,Honduras,HN,HND,340
+http://www.wikidata.org/entity/Q224,Croatia,HR,HRV,191
+http://www.wikidata.org/entity/Q790,Haiti,HT,HTI,332
+http://www.wikidata.org/entity/Q28,Hungary,HU,HUN,348
+http://www.wikidata.org/entity/Q252,Indonesia,ID,IDN,360
+http://www.wikidata.org/entity/Q9676,Isle of Man,IM,IMN,833
+http://www.wikidata.org/entity/Q668,India,IN,IND,356
+http://www.wikidata.org/entity/Q43448,British Indian Ocean Territory,IO,IOT,86
+http://www.wikidata.org/entity/Q27,Ireland,IE,IRL,372
+http://www.wikidata.org/entity/Q794,Iran,IR,IRN,364
+http://www.wikidata.org/entity/Q796,Iraq,IQ,IRQ,368
+http://www.wikidata.org/entity/Q189,Iceland,IS,ISL,352
+http://www.wikidata.org/entity/Q801,Israel,IL,ISR,376
+http://www.wikidata.org/entity/Q38,Italy,IT,ITA,380
+http://www.wikidata.org/entity/Q766,Jamaica,JM,JAM,388
+http://www.wikidata.org/entity/Q785,Jersey,JE,JEY,832
+http://www.wikidata.org/entity/Q810,Jordan,JO,JOR,400
+http://www.wikidata.org/entity/Q17,Japan,JP,JPN,392
+http://www.wikidata.org/entity/Q232,Kazakhstan,KZ,KAZ,398
+http://www.wikidata.org/entity/Q114,Kenya,KE,KEN,404
+http://www.wikidata.org/entity/Q813,Kyrgyzstan,KG,KGZ,417
+http://www.wikidata.org/entity/Q424,Cambodia,KH,KHM,116
+http://www.wikidata.org/entity/Q710,Kiribati,KI,KIR,296
+http://www.wikidata.org/entity/Q763,Saint Kitts and Nevis,KN,KNA,659
+http://www.wikidata.org/entity/Q884,South Korea,KR,KOR,410
+http://www.wikidata.org/entity/Q817,Kuwait,KW,KWT,414
+http://www.wikidata.org/entity/Q819,Laos,LA,LAO,418
+http://www.wikidata.org/entity/Q822,Lebanon,LB,LBN,422
+http://www.wikidata.org/entity/Q1014,Liberia,LR,LBR,430
+http://www.wikidata.org/entity/Q1016,Libya,LY,LBY,434
+http://www.wikidata.org/entity/Q760,Saint Lucia,LC,LCA,662
+http://www.wikidata.org/entity/Q347,Liechtenstein,LI,LIE,438
+http://www.wikidata.org/entity/Q854,Sri Lanka,LK,LKA,144
+http://www.wikidata.org/entity/Q1013,Lesotho,LS,LSO,426
+http://www.wikidata.org/entity/Q37,Lithuania,LT,LTU,440
+http://www.wikidata.org/entity/Q32,Luxembourg,LU,LUX,442
+http://www.wikidata.org/entity/Q211,Latvia,LV,LVA,428
+http://www.wikidata.org/entity/Q14773,Macau,MO,MAC,446
+http://www.wikidata.org/entity/Q126125,Saint-Martin,MF,MAF,663
+http://www.wikidata.org/entity/Q1028,Morocco,MA,MAR,504
+http://www.wikidata.org/entity/Q235,Monaco,MC,MCO,492
+http://www.wikidata.org/entity/Q217,Moldova,MD,MDA,498
+http://www.wikidata.org/entity/Q1019,Madagascar,MG,MDG,450
+http://www.wikidata.org/entity/Q826,Maldives,MV,MDV,462
+http://www.wikidata.org/entity/Q96,Mexico,MX,MEX,484
+http://www.wikidata.org/entity/Q709,Marshall Islands,MH,MHL,584
+http://www.wikidata.org/entity/Q221,North Macedonia,MK,MKD,807
+http://www.wikidata.org/entity/Q912,Mali,ML,MLI,466
+http://www.wikidata.org/entity/Q233,Malta,MT,MLT,470
+http://www.wikidata.org/entity/Q836,Myanmar,MM,MMR,104
+http://www.wikidata.org/entity/Q236,Montenegro,ME,MNE,499
+http://www.wikidata.org/entity/Q711,Mongolia,MN,MNG,496
+http://www.wikidata.org/entity/Q16644,Northern Mariana Islands,MP,MNP,580
+http://www.wikidata.org/entity/Q1029,Mozambique,MZ,MOZ,508
+http://www.wikidata.org/entity/Q1025,Mauritania,MR,MRT,478
+http://www.wikidata.org/entity/Q13353,Montserrat,MS,MSR,500
+http://www.wikidata.org/entity/Q17054,Martinique,MQ,MTQ,474
+http://www.wikidata.org/entity/Q1027,Mauritius,MU,MUS,480
+http://www.wikidata.org/entity/Q1020,Malawi,MW,MWI,454
+http://www.wikidata.org/entity/Q833,Malaysia,MY,MYS,458
+http://www.wikidata.org/entity/Q17063,Mayotte,YT,MYT,175
+http://www.wikidata.org/entity/Q1030,Namibia,NA,NAM,516
+http://www.wikidata.org/entity/Q33788,New Caledonia,NC,NCL,540
+http://www.wikidata.org/entity/Q1032,Niger,NE,NER,562
+http://www.wikidata.org/entity/Q31057,Norfolk Island,NF,NFK,574
+http://www.wikidata.org/entity/Q1033,Nigeria,NG,NGA,566
+http://www.wikidata.org/entity/Q811,Nicaragua,NI,NIC,558
+http://www.wikidata.org/entity/Q34020,Niue,NU,NIU,570
+http://www.wikidata.org/entity/Q29999,Kingdom of the Netherlands,NL,NLD,528
+http://www.wikidata.org/entity/Q20,Norway,NO,NOR,578
+http://www.wikidata.org/entity/Q837,Nepal,NP,NPL,524
+http://www.wikidata.org/entity/Q697,Nauru,NR,NRU,520
+http://www.wikidata.org/entity/Q664,New Zealand,NZ,NZL,554
+http://www.wikidata.org/entity/Q842,Oman,OM,OMN,512
+http://www.wikidata.org/entity/Q843,Pakistan,PK,PAK,586
+http://www.wikidata.org/entity/Q804,Panama,PA,PAN,591
+http://www.wikidata.org/entity/Q129237,Trust Territory of the Pacific Islands,PC,PCI,582
+http://www.wikidata.org/entity/Q35672,Pitcairn Islands,PN,PCN,612
+http://www.wikidata.org/entity/Q419,Peru,PE,PER,604
+http://www.wikidata.org/entity/Q928,Philippines,PH,PHL,608
+http://www.wikidata.org/entity/Q695,Palau,PW,PLW,585
+http://www.wikidata.org/entity/Q691,Papua New Guinea,PG,PNG,598
+http://www.wikidata.org/entity/Q36,Poland,PL,POL,616
+http://www.wikidata.org/entity/Q1183,Puerto Rico,PR,PRI,630
+http://www.wikidata.org/entity/Q423,North Korea,KP,PRK,408
+http://www.wikidata.org/entity/Q45,Portugal,PT,PRT,620
+http://www.wikidata.org/entity/Q733,Paraguay,PY,PRY,600
+http://www.wikidata.org/entity/Q219060,Palestine,PS,PSE,275
+http://www.wikidata.org/entity/Q30971,French Polynesia,PF,PYF,258
+http://www.wikidata.org/entity/Q846,Qatar,QA,QAT,634
+http://www.wikidata.org/entity/Q17070,Réunion,RE,REU,638
+http://www.wikidata.org/entity/Q218,Romania,RO,ROU,642
+http://www.wikidata.org/entity/Q159,Russia,RU,RUS,643
+http://www.wikidata.org/entity/Q1037,Rwanda,RW,RWA,646
+http://www.wikidata.org/entity/Q851,Saudi Arabia,SA,SAU,682
+http://www.wikidata.org/entity/Q1049,Sudan,SD,SDN,729
+http://www.wikidata.org/entity/Q1041,Senegal,SN,SEN,686
+http://www.wikidata.org/entity/Q334,Singapore,SG,SGP,702
+http://www.wikidata.org/entity/Q35086,South Georgia and the South Sandwich Islands,GS,SGS,239
+http://www.wikidata.org/entity/Q192184,"Saint Helena, Ascension and Tristan da Cunha",SH,SHN,654
+http://www.wikidata.org/entity/Q842829,Svalbard and Jan Mayen,SJ,SJM,744
+http://www.wikidata.org/entity/Q685,Solomon Islands,SB,SLB,90
+http://www.wikidata.org/entity/Q1044,Sierra Leone,SL,SLE,694
+http://www.wikidata.org/entity/Q792,El Salvador,SV,SLV,222
+http://www.wikidata.org/entity/Q238,San Marino,SM,SMR,674
+http://www.wikidata.org/entity/Q1045,Somalia,SO,SOM,706
+http://www.wikidata.org/entity/Q34617,Saint Pierre and Miquelon,PM,SPM,666
+http://www.wikidata.org/entity/Q403,Serbia,RS,SRB,688
+http://www.wikidata.org/entity/Q958,South Sudan,SS,SSD,728
+http://www.wikidata.org/entity/Q1039,São Tomé and Príncipe,ST,STP,678
+http://www.wikidata.org/entity/Q730,Suriname,SR,SUR,740
+http://www.wikidata.org/entity/Q214,Slovakia,SK,SVK,703
+http://www.wikidata.org/entity/Q215,Slovenia,SI,SVN,705
+http://www.wikidata.org/entity/Q34,Sweden,SE,SWE,752
+http://www.wikidata.org/entity/Q1050,Eswatini,SZ,SWZ,748
+http://www.wikidata.org/entity/Q26273,Sint Maarten,SX,SXM,534
+http://www.wikidata.org/entity/Q1042,Seychelles,SC,SYC,690
+http://www.wikidata.org/entity/Q858,Syria,SY,SYR,760
+http://www.wikidata.org/entity/Q18221,Turks and Caicos Islands,TC,TCA,796
+http://www.wikidata.org/entity/Q657,Chad,TD,TCD,148
+http://www.wikidata.org/entity/Q945,Togo,TG,TGO,768
+http://www.wikidata.org/entity/Q869,Thailand,TH,THA,764
+http://www.wikidata.org/entity/Q863,Tajikistan,TJ,TJK,762
+http://www.wikidata.org/entity/Q36823,Tokelau,TK,TKL,772
+http://www.wikidata.org/entity/Q874,Turkmenistan,TM,TKM,795
+http://www.wikidata.org/entity/Q574,Timor-Leste,TL,TLS,626
+http://www.wikidata.org/entity/Q678,Tonga,TO,TON,776
+http://www.wikidata.org/entity/Q754,Trinidad and Tobago,TT,TTO,780
+http://www.wikidata.org/entity/Q948,Tunisia,TN,TUN,788
+http://www.wikidata.org/entity/Q43,Turkey,TR,TUR,792
+http://www.wikidata.org/entity/Q672,Tuvalu,TV,TUV,798
+http://www.wikidata.org/entity/Q865,Taiwan,TW,TWN,158
+http://www.wikidata.org/entity/Q924,Tanzania,TZ,TZA,834
+http://www.wikidata.org/entity/Q1036,Uganda,UG,UGA,800
+http://www.wikidata.org/entity/Q212,Ukraine,UA,UKR,804
+http://www.wikidata.org/entity/Q16645,United States Minor Outlying Islands,UM,UMI,581
+http://www.wikidata.org/entity/Q77,Uruguay,UY,URY,858
+http://www.wikidata.org/entity/Q30,United States,US,USA,840
+http://www.wikidata.org/entity/Q265,Uzbekistan,UZ,UZB,860
+http://www.wikidata.org/entity/Q237,Vatican City,VA,VAT,336
+http://www.wikidata.org/entity/Q757,Saint Vincent and the Grenadines,VC,VCT,670
+http://www.wikidata.org/entity/Q717,Venezuela,VE,VEN,862
+http://www.wikidata.org/entity/Q25305,British Virgin Islands,VG,VGB,92
+http://www.wikidata.org/entity/Q11703,United States Virgin Islands,VI,VIR,850
+http://www.wikidata.org/entity/Q881,Vietnam,VN,VNM,704
+http://www.wikidata.org/entity/Q686,Vanuatu,VU,VUT,548
+http://www.wikidata.org/entity/Q35555,Wallis and Futuna,WF,WLF,876
+http://www.wikidata.org/entity/Q683,Samoa,WS,WSM,882
+http://www.wikidata.org/entity/Q805,Yemen,YE,YEM,887
+http://www.wikidata.org/entity/Q258,South Africa,ZA,ZAF,710
+http://www.wikidata.org/entity/Q953,Zambia,ZM,ZMB,894
+http://www.wikidata.org/entity/Q954,Zimbabwe,ZW,ZWE,716
