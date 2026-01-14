@@ -5334,14 +5334,16 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             const nodes = features.map((feature) => {
               const name = feature.properties.name || "";
               const [anchorX, anchorY] = getCountryLabelAnchor(feature);
-              const [x, y] = getCountryLabelPosition(feature);
+              const [targetX, targetY] = getCountryLabelPosition(feature);
               return {
                 id: String(feature.id),
                 name,
                 anchorX,
                 anchorY,
-                x,
-                y,
+                targetX,
+                targetY,
+                x: targetX,
+                y: targetY,
                 radius: estimateLabelRadius(name),
               };
             });
@@ -5349,8 +5351,8 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             const maxOffset = 24;
             const simulation = d3
               .forceSimulation(nodes)
-              .force("x", d3.forceX((d) => d.anchorX).strength(0.5))
-              .force("y", d3.forceY((d) => d.anchorY).strength(0.5))
+              .force("x", d3.forceX((d) => d.targetX).strength(0.5))
+              .force("y", d3.forceY((d) => d.targetY).strength(0.5))
               .force("collide", d3.forceCollide((d) => d.radius + 1))
               .stop();
             for (let i = 0; i < 80; i += 1) {
