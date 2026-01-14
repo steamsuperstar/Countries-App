@@ -66,6 +66,9 @@
         left: 0;
         right: 0;
         z-index: 20;
+        max-height: 40svh;
+        overflow: auto;
+        box-sizing: border-box;
         grid-template-columns: minmax(140px, auto) minmax(0, 1fr);
         grid-template-areas:
           "title controls"
@@ -336,6 +339,9 @@
         line-height: 1.4;
         min-height: 32px;
         z-index: 20;
+        max-height: 40svh;
+        overflow: auto;
+        box-sizing: border-box;
         transition: width 160ms ease-in-out, min-height 160ms ease-in-out;
       }
 
