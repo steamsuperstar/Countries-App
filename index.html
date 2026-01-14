@@ -282,6 +282,10 @@
         fill: #1d3557;
         text-anchor: middle;
         pointer-events: none;
+        paint-order: stroke;
+        stroke: #f8fafc;
+        stroke-width: 0.6;
+        stroke-linejoin: round;
       }
 
       .region-label {
@@ -297,6 +301,13 @@
       .country-label {
         font-size: 3px;
         font-weight: 500;
+      }
+
+      .label-line {
+        stroke: #1d3557;
+        stroke-width: 0.45;
+        opacity: 0.55;
+        pointer-events: none;
       }
 
       .is-hidden {
@@ -5026,6 +5037,9 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
           const subregionLabelsGroup = mapGroup
             .append("g")
             .attr("class", "subregion-labels-layer is-hidden");
+          const countryLabelLinesGroup = mapGroup
+            .append("g")
+            .attr("class", "country-label-lines-layer is-hidden");
           const countryLabelsGroup = mapGroup
             .append("g")
             .attr("class", "country-labels-layer is-hidden");
@@ -5193,17 +5207,20 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
           }
 
           const countryOffsets = new Map([
-            ["Antigua and Barbuda", [6, -4]],
-            ["Barbados", [6, 6]],
-            ["Dominica", [-6, -6]],
-            ["Grenada", [8, 8]],
-            ["Saint Kitts and Nevis", [10, -2]],
-            ["Saint Lucia", [6, 10]],
-            ["Saint Vincent and the Grenadines", [10, 12]],
-            ["Trinidad and Tobago", [12, 10]],
-            ["Haiti", [-6, -4]],
-            ["Dominican Republic", [10, 0]],
+            ["Antigua and Barbuda", [14, -10]],
+            ["Barbados", [18, 12]],
+            ["Dominica", [-16, -12]],
+            ["Grenada", [16, 16]],
+            ["Saint Kitts and Nevis", [16, -8]],
+            ["Saint Lucia", [12, 18]],
+            ["Saint Vincent and the Grenadines", [20, 18]],
+            ["Trinidad and Tobago", [18, 14]],
+            ["Haiti", [-12, -8]],
+            ["Dominican Republic", [16, 2]],
+            ["Chile", [-28, 0]],
+            ["Uruguay", [10, 6]],
           ]);
+          let activeSubregion = null;
 
           function getRegionLabelPosition(region) {
             return path.centroid(region.geometry);
@@ -5222,7 +5239,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
           }
 
           function getCountryLabelPosition(feature) {
-            const [x, y] = path.centroid(feature);
+            const [x, y] = getCountryLabelAnchor(feature);
             if (feature.properties.name === "France") {
               return [x + 20, y - 24];
             }
@@ -5233,7 +5250,170 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             return [x, y];
           }
 
+          function getProjectedRings(feature) {
+            const geometry = feature?.geometry;
+            if (!geometry) {
+              return [];
+            }
+            const polygons =
+              geometry.type === "Polygon"
+                ? [geometry.coordinates]
+                : geometry.type === "MultiPolygon"
+                  ? geometry.coordinates
+                  : [];
+            return polygons
+              .map((polygon) => polygon?.[0] ?? [])
+              .filter((ring) => ring.length)
+              .map((ring) => ring.map((coord) => projection(coord)));
+          }
+
+          function isPointInFeature(point, feature) {
+            const rings = getProjectedRings(feature);
+            return rings.some((ring) => d3.polygonContains(ring, point));
+          }
+
+          function getFeatureCentroid(feature) {
+            return path.centroid(feature);
+          }
+
+          function findContainingFeature(point, features, excludedId) {
+            for (const feature of features) {
+              if (String(feature.id) === excludedId) {
+                continue;
+              }
+              const rings = getProjectedRings(feature);
+              if (rings.some((ring) => d3.polygonContains(ring, point))) {
+                return feature;
+              }
+            }
+            return null;
+          }
+
+          function getCountryLabelAnchor(feature) {
+            const centroid = path.centroid(feature);
+            if (isPointInFeature(centroid, feature)) {
+              return centroid;
+            }
+            const [[x0, y0], [x1, y1]] = path.bounds(feature);
+            const columns = 12;
+            const rows = 12;
+            let best = null;
+            let bestDistance = Infinity;
+            for (let col = 0; col < columns; col += 1) {
+              for (let row = 0; row < rows; row += 1) {
+                const x = x0 + ((col + 0.5) / columns) * (x1 - x0);
+                const y = y0 + ((row + 0.5) / rows) * (y1 - y0);
+                const candidate = [x, y];
+                if (!isPointInFeature(candidate, feature)) {
+                  continue;
+                }
+                const distance = Math.hypot(x - centroid[0], y - centroid[1]);
+                if (distance < bestDistance) {
+                  bestDistance = distance;
+                  best = candidate;
+                }
+              }
+            }
+            return best ?? centroid;
+          }
+
+          function estimateLabelRadius(label) {
+            const charWidth = 2.1;
+            const minRadius = 3.5;
+            return Math.max(minRadius, (label?.length ?? 0) * charWidth * 0.5);
+          }
+
+          function layoutCountryLabels(features) {
+            if (!features?.length) {
+              countryLabelLinesGroup.selectAll("line").remove();
+              return;
+            }
+            const featureCentroids = new Map(
+              features.map((feature) => [String(feature.id), getFeatureCentroid(feature)])
+            );
+            const nodes = features.map((feature) => {
+              const name = feature.properties.name || "";
+              const [anchorX, anchorY] = getCountryLabelAnchor(feature);
+              const [targetX, targetY] = getCountryLabelPosition(feature);
+              return {
+                id: String(feature.id),
+                name,
+                anchorX,
+                anchorY,
+                targetX,
+                targetY,
+                x: targetX,
+                y: targetY,
+                radius: estimateLabelRadius(name),
+              };
+            });
+            const nodeById = new Map(nodes.map((node) => [node.id, node]));
+            const maxOffset = 24;
+            const simulation = d3
+              .forceSimulation(nodes)
+              .force("x", d3.forceX((d) => d.targetX).strength(0.5))
+              .force("y", d3.forceY((d) => d.targetY).strength(0.5))
+              .force("collide", d3.forceCollide((d) => d.radius + 1))
+              .stop();
+            for (let i = 0; i < 80; i += 1) {
+              simulation.tick();
+            }
+            nodes.forEach((node) => {
+              let iterations = 0;
+              while (iterations < 6) {
+                const overlappingFeature = findContainingFeature(
+                  [node.x, node.y],
+                  features,
+                  node.id
+                );
+                if (!overlappingFeature) {
+                  break;
+                }
+                const centroid =
+                  featureCentroids.get(String(overlappingFeature.id)) ??
+                  getFeatureCentroid(overlappingFeature);
+                const dx = node.x - centroid[0];
+                const dy = node.y - centroid[1];
+                const distance = Math.hypot(dx, dy) || 1;
+                node.x += (dx / distance) * 3;
+                node.y += (dy / distance) * 3;
+                const anchorDx = node.x - node.anchorX;
+                const anchorDy = node.y - node.anchorY;
+                const anchorDistance = Math.hypot(anchorDx, anchorDy);
+                if (anchorDistance > maxOffset) {
+                  const scale = maxOffset / anchorDistance;
+                  node.x = node.anchorX + anchorDx * scale;
+                  node.y = node.anchorY + anchorDy * scale;
+                }
+                iterations += 1;
+              }
+            });
+            const lineThreshold = 4;
+            countryLabelsGroup
+              .selectAll("text")
+              .attr("x", (d) => nodeById.get(String(d.id))?.x ?? 0)
+              .attr("y", (d) => nodeById.get(String(d.id))?.y ?? 0);
+            countryLabelLinesGroup
+              .selectAll("line")
+              .data(features, (d) => d.id)
+              .join("line")
+              .attr("class", "label-line")
+              .attr("x1", (d) => nodeById.get(String(d.id))?.anchorX ?? 0)
+              .attr("y1", (d) => nodeById.get(String(d.id))?.anchorY ?? 0)
+              .attr("x2", (d) => nodeById.get(String(d.id))?.x ?? 0)
+              .attr("y2", (d) => nodeById.get(String(d.id))?.y ?? 0)
+              .attr("opacity", (d) => {
+                const node = nodeById.get(String(d.id));
+                if (!node) {
+                  return 0;
+                }
+                const distance = Math.hypot(node.x - node.anchorX, node.y - node.anchorY);
+                return distance > lineThreshold ? 0.6 : 0;
+              });
+          }
+
           function drawRegions() {
+            activeSubregion = null;
             const hasRegions = regions.length > 0;
             regionGroup.classed("is-hidden", !hasRegions);
             if (hasRegions) {
@@ -5241,6 +5421,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               countriesGroup.lower();
               countriesGroup.classed("is-hidden", true);
               regionLabelsGroup.raise();
+              countryLabelLinesGroup.classed("is-hidden", true);
             } else {
               countriesGroup.classed("is-hidden", false);
             }
@@ -5268,6 +5449,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
                   gameState?.active && gameState.mode === "subregion"
                 );
                 countryLabelsGroup.classed("is-hidden", true);
+                countryLabelLinesGroup.classed("is-hidden", true);
                 subregionLabelsGroup.raise();
                 if (d.name !== "Oceania") {
                   const useEuropeZoom = d.name === "Europe";
@@ -5312,22 +5494,26 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               clearSelections({ keepRegion: true, keepSubregions: true });
               d3.select(this).classed("is-selected", true);
               const isSubregionGame = gameState?.active && gameState.mode === "subregion";
-              if (!isSubregionGame) {
-                drawSubregionCountries(d);
-                subregionCountriesGroup.classed("is-hidden", false);
-                subregionCountriesGroup.raise();
-                subregionLabelsGroup.classed("is-hidden", true);
-                if (gameState?.active && gameState.mode === "country") {
-                  countryLabelsGroup.classed("is-hidden", true);
-                } else {
-                  countryLabelsGroup.classed("is-hidden", false);
-                }
-                countryLabelsGroup.raise();
-                zoomToSubregion(d);
-              } else {
-                subregionLabelsGroup.classed("is-hidden", false);
+            if (!isSubregionGame) {
+              drawSubregionCountries(d);
+              subregionCountriesGroup.classed("is-hidden", false);
+              subregionCountriesGroup.raise();
+              subregionLabelsGroup.classed("is-hidden", true);
+              if (gameState?.active && gameState.mode === "country") {
                 countryLabelsGroup.classed("is-hidden", true);
+                countryLabelLinesGroup.classed("is-hidden", true);
+              } else {
+                countryLabelsGroup.classed("is-hidden", false);
+                countryLabelLinesGroup.classed("is-hidden", false);
               }
+              countryLabelsGroup.raise();
+              countryLabelLinesGroup.raise();
+              zoomToSubregion(d);
+            } else {
+              subregionLabelsGroup.classed("is-hidden", false);
+              countryLabelsGroup.classed("is-hidden", true);
+              countryLabelLinesGroup.classed("is-hidden", true);
+            }
               const selectionLabel = `${d.name} (sub-region)`;
               setSelectionDisplay({
                 label: selectionLabel,
@@ -5349,6 +5535,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
 
           // Draw sub-region countries (hidden until a sub-region is selected).
           function drawSubregionCountries(subregion) {
+            activeSubregion = subregion;
             subregionLabelsGroup.classed("is-hidden", true);
             subregionCountriesGroup
               .selectAll("path")
@@ -5388,9 +5575,13 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               .data(subregion.features, (d) => d.id)
               .join("text")
               .attr("class", "label country-label")
-              .attr("x", (d) => getCountryLabelPosition(d)[0])
-              .attr("y", (d) => getCountryLabelPosition(d)[1])
               .text((d) => d.properties.name || "");
+            countryLabelLinesGroup
+              .classed(
+                "is-hidden",
+                gameState?.active && gameState.mode === "country" ? true : false
+              );
+            layoutCountryLabels(subregion.features);
           }
 
           function refreshMapLayout() {
@@ -5412,6 +5603,9 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               .selectAll("text")
               .attr("x", (d) => getCountryLabelPosition(d)[0])
               .attr("y", (d) => getCountryLabelPosition(d)[1]);
+            if (activeSubregion?.features?.length) {
+              layoutCountryLabels(activeSubregion.features);
+            }
             if (gameState?.active && gameState.mode === "country") {
               svg.call(zoom.transform, currentTransform);
             } else {
@@ -5514,6 +5708,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             regionLabelsGroup.classed("is-hidden", false);
             subregionLabelsGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
+            countryLabelLinesGroup.classed("is-hidden", true);
             resetZoom();
           }
 
@@ -5527,6 +5722,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             subregionLabelsGroup.raise();
             regionLabelsGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
+            countryLabelLinesGroup.classed("is-hidden", true);
             if (region.name !== "Oceania") {
               zoomToGeometry(region.geometry, { duration: 450, padding: 0.95, maxScale: 8 });
             }
@@ -5537,9 +5733,11 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             drawSubregionCountries(subregion);
             subregionCountriesGroup.classed("is-hidden", false);
             countryLabelsGroup.classed("is-hidden", false);
+            countryLabelLinesGroup.classed("is-hidden", false);
             subregionLabelsGroup.classed("is-hidden", true);
             subregionCountriesGroup.raise();
             countryLabelsGroup.raise();
+            countryLabelLinesGroup.raise();
             zoomToSubregion(subregion);
           }
 
@@ -5737,6 +5935,8 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               regionLabelsGroup.classed("is-hidden", false);
               subregionLabelsGroup.classed("is-hidden", true);
               countryLabelsGroup.classed("is-hidden", true);
+              countryLabelLinesGroup.classed("is-hidden", true);
+              activeSubregion = null;
               if (!options.keepZoom) {
                 resetZoom();
               }
@@ -5746,6 +5946,8 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               subregionGroup.classed("is-hidden", true);
               subregionLabelsGroup.classed("is-hidden", true);
               countryLabelsGroup.classed("is-hidden", true);
+              countryLabelLinesGroup.classed("is-hidden", true);
+              activeSubregion = null;
             }
             subregionCountriesGroup
               .selectAll(".country")
@@ -5753,6 +5955,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               .classed("is-correct", false);
             subregionCountriesGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
+            countryLabelLinesGroup.classed("is-hidden", true);
             if (!options.keepRegion && !options.keepSubregions) {
               setSelectionDisplay({ label: "None" });
             }
