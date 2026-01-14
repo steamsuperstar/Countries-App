@@ -5968,15 +5968,6 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
           let currentSelectionLabel = "None";
           let isUserCollapsed = false;
 
-          function escapeHtml(value) {
-            return String(value)
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#39;");
-          }
-
           function getCountryIso2(countryName, countryNumeric) {
             const canonicalName = countryAliases.get(countryName) ?? countryName;
             const numericKey = countryNumeric ? normalizeNumeric(countryNumeric) : "";
@@ -6027,9 +6018,53 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             isUserCollapsed = !isUserCollapsed;
             updateSelectionPanelState({
               selection: currentSelectionLabel,
-              hasDetails: selectionDetails.innerHTML.trim() !== "",
+              hasDetails: selectionDetails.textContent?.trim() !== "",
             });
           });
+
+          function renderDetailLine(value) {
+            const line = document.createElement("span");
+            line.textContent = value;
+            return line;
+          }
+
+          function renderSelectionDetails({ detailLines, flag, selection }) {
+            selectionDetails.replaceChildren();
+
+            if (flag?.src) {
+              const detailWrapper = document.createElement("div");
+              detailWrapper.className = "selected-label__details";
+
+              const flagImage = document.createElement("img");
+              flagImage.className = "selected-label__flag";
+              flagImage.src = flag.src;
+              flagImage.alt = flag.alt ?? `Flag of ${selection}`;
+              flagImage.title = flag.title ?? flagImage.alt;
+              flagImage.loading = "lazy";
+              flagImage.decoding = "async";
+
+              const textWrapper = document.createElement("div");
+              textWrapper.className = "selected-label__text";
+
+              detailLines.forEach((line, index) => {
+                textWrapper.appendChild(renderDetailLine(line));
+                if (index < detailLines.length - 1) {
+                  textWrapper.appendChild(document.createElement("br"));
+                }
+              });
+
+              detailWrapper.append(flagImage, textWrapper);
+              selectionDetails.append(detailWrapper);
+              return;
+            }
+
+            detailLines.forEach((line, index) => {
+              selectionDetails.appendChild(renderDetailLine(line));
+              if (index < detailLines.length - 1) {
+                selectionDetails.appendChild(document.createElement("br"));
+              }
+            });
+          }
 
           function setSelectionDisplay({
             label,
@@ -6050,51 +6085,29 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             }
             const detailLines = [];
             if (formalName && selection !== "None") {
-              detailLines.push(`<span>Formal name: ${formalName}</span>`);
+              detailLines.push(`Formal name: ${formalName}`);
             }
             if (dependency && selection !== "None") {
-              detailLines.push(`<span>Status: ${dependency}</span>`);
+              detailLines.push(`Status: ${dependency}`);
             }
             if (capital) {
-              detailLines.push(`<span>Capital: ${capital}</span>`);
+              detailLines.push(`Capital: ${capital}`);
             }
             if (governmentType) {
-              detailLines.push(
-                `<span>Government type: ${escapeHtml(governmentType)}</span>`
-              );
+              detailLines.push(`Government type: ${governmentType}`);
             }
             if (languages) {
-              detailLines.push(`<span>Languages: ${languages}</span>`);
+              detailLines.push(`Languages: ${languages}`);
             }
             if (currencyName) {
-              detailLines.push(`<span>Currency: ${currencyName}</span>`);
+              detailLines.push(`Currency: ${currencyName}`);
             }
             if (fact) {
-              detailLines.push(`<span>${fact}</span>`);
+              detailLines.push(fact);
             }
 
             selectionTitle.textContent = `Selected: ${selection}`;
-            const detailHtml = detailLines.join("<br>");
-            if (flag?.src) {
-              const flagAlt = escapeHtml(flag.alt ?? `Flag of ${selection}`);
-              const flagTitle = escapeHtml(flag.title ?? flagAlt);
-              const flagSrc = escapeHtml(flag.src);
-              selectionDetails.innerHTML = `
-                <div class="selected-label__details">
-                  <img
-                    class="selected-label__flag"
-                    src="${flagSrc}"
-                    alt="${flagAlt}"
-                    title="${flagTitle}"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div class="selected-label__text">${detailHtml}</div>
-                </div>
-              `;
-            } else {
-              selectionDetails.innerHTML = detailHtml;
-            }
+            renderSelectionDetails({ detailLines, flag, selection });
 
             const hasDetails = detailLines.length > 0 || Boolean(flag?.src);
             updateSelectionPanelState({ selection, hasDetails });
