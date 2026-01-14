@@ -8,6 +8,7 @@
       :root {
         color-scheme: light;
         font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        --ui-scale: 1;
       }
 
       html,
@@ -69,6 +70,8 @@
         max-height: 40svh;
         overflow: auto;
         box-sizing: border-box;
+        transform: scale(var(--ui-scale));
+        transform-origin: top left;
         grid-template-columns: minmax(140px, auto) minmax(0, 1fr);
         grid-template-areas:
           "title controls"
@@ -342,6 +345,8 @@
         max-height: 40svh;
         overflow: auto;
         box-sizing: border-box;
+        transform: scale(var(--ui-scale));
+        transform-origin: bottom left;
         transition: width 160ms ease-in-out, min-height 160ms ease-in-out;
       }
 
@@ -6143,17 +6148,31 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             return entry.fact;
           }
 
+          function updateUiScale() {
+            const viewportScale = window.visualViewport?.scale ?? 1;
+            const dpr = window.devicePixelRatio || 1;
+            const zoom = Math.max(viewportScale, dpr);
+            const scale = Math.min(1, 1 / zoom);
+            document.documentElement.style.setProperty(
+              "--ui-scale",
+              scale.toFixed(3)
+            );
+          }
+
           if (mapShell) {
             if ("ResizeObserver" in window) {
               const resizeObserver = new ResizeObserver(() => {
                 refreshMapLayout();
+                updateUiScale();
               });
               resizeObserver.observe(mapShell);
             } else {
               window.addEventListener("resize", refreshMapLayout);
+              window.addEventListener("resize", updateUiScale);
             }
           }
 
+          updateUiScale();
           drawCountries();
           drawRegions();
           refreshMapLayout();
