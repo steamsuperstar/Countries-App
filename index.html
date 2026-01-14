@@ -5932,6 +5932,8 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               regionLabelsGroup.classed("is-hidden", false);
               subregionLabelsGroup.classed("is-hidden", true);
               countryLabelsGroup.classed("is-hidden", true);
+              countryLabelLinesGroup.classed("is-hidden", true);
+              activeSubregion = null;
               if (!options.keepZoom) {
                 resetZoom();
               }
@@ -5941,6 +5943,8 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               subregionGroup.classed("is-hidden", true);
               subregionLabelsGroup.classed("is-hidden", true);
               countryLabelsGroup.classed("is-hidden", true);
+              countryLabelLinesGroup.classed("is-hidden", true);
+              activeSubregion = null;
             }
             subregionCountriesGroup
               .selectAll(".country")
@@ -5948,6 +5952,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               .classed("is-correct", false);
             subregionCountriesGroup.classed("is-hidden", true);
             countryLabelsGroup.classed("is-hidden", true);
+            countryLabelLinesGroup.classed("is-hidden", true);
             if (!options.keepRegion && !options.keepSubregions) {
               setSelectionDisplay({ label: "None" });
             }
