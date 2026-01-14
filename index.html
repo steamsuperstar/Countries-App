@@ -5799,9 +5799,10 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               return null;
             }
             const label = countryName || iso2;
+            const localSrc = `./${flagFile.replace(/%/g, "%25")}`;
             return {
               iso2,
-              src: flagFile,
+              src: localSrc,
               alt: `Flag of ${label}`,
               title: `Flag of ${label}`,
             };
