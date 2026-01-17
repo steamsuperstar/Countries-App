@@ -2973,7 +2973,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               subregionLabelsGroup.classed("is-hidden", true);
               if (gameState?.active && gameState.mode === "country") {
                 countryLabelsGroup.classed("is-hidden", true);
-                countryLabelLinesGroup.classed("is-hidden", false);
+                countryLabelLinesGroup.classed("is-hidden", true);
               } else {
                 countryLabelsGroup.classed("is-hidden", false);
                 countryLabelLinesGroup.classed("is-hidden", false);
@@ -3046,7 +3046,10 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               .join("text")
               .attr("class", "label country-label")
               .text((d) => d.properties.name || "");
-            countryLabelLinesGroup.classed("is-hidden", false);
+            countryLabelLinesGroup.classed(
+              "is-hidden",
+              gameState?.active && gameState.mode === "country" ? true : false
+            );
             layoutCountryLabels(subregion.features);
           }
 
