@@ -13,9 +13,6 @@
       html,
       body {
         height: 100%;
-      }
-
-      body {
         margin: 0;
         padding: 0;
         min-height: 100dvh;
@@ -206,12 +203,15 @@
         display: block;
       }
 
+      :is(.country, .region, .subregion) {
+        cursor: pointer;
+        transition: fill 150ms ease-in-out;
+      }
+
       .country {
         fill: #c9d6f2;
         stroke: #52637a;
         stroke-width: 0.4;
-        cursor: pointer;
-        transition: fill 150ms ease-in-out;
       }
 
       .country:hover {
@@ -238,8 +238,6 @@
         fill: #c9f0d3;
         stroke: #2f855a;
         stroke-width: 0.7;
-        cursor: pointer;
-        transition: fill 150ms ease-in-out;
       }
 
       .region:hover {
@@ -260,8 +258,6 @@
         fill: #cde8f9;
         stroke: #285a84;
         stroke-width: 0.6;
-        cursor: pointer;
-        transition: fill 150ms ease-in-out;
       }
 
       .subregion:hover {
@@ -415,13 +411,9 @@
       }
 
       .facts-panel {
-        padding: 20px 12px 32px;
-        display: grid;
-        gap: 12px;
-      }
-
-      .facts-panel {
         display: none;
+        padding: 20px 12px 32px;
+        gap: 12px;
       }
     </style>
   </head>
