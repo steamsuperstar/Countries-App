@@ -2099,11 +2099,25 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
           );
 
           // Build sub-region metadata including merged geometry and member features.
-          function safeMerge(geometries) {
+          function safeMerge(geometries, features = []) {
             if (!geometries.length) {
               return null;
             }
-            return topojson.merge(topology, geometries);
+            const merged = topojson.merge(topology, geometries);
+            if (!merged) {
+              return null;
+            }
+            const [[minLon, minLat], [maxLon, maxLat]] = d3.geoBounds(merged);
+            const spanLon = Math.abs(maxLon - minLon);
+            const spanLat = Math.abs(maxLat - minLat);
+            const isSuspiciouslyLarge = spanLon > 300 || spanLat > 160;
+            if (!isSuspiciouslyLarge || !features.length) {
+              return merged;
+            }
+            return {
+              type: "FeatureCollection",
+              features,
+            };
           }
 
           const subregions = Array.from(subregionGroups, ([code, rows]) => {
@@ -2125,7 +2139,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               regionName,
               codes,
               features,
-              geometry: safeMerge(geometries),
+              geometry: safeMerge(geometries, features),
             };
           }).filter((subregion) => subregion.geometry && subregion.features.length > 0);
 
@@ -2136,6 +2150,9 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             const geometries = countryObject.geometries.filter((geometry) =>
               codes.has(normalizeNumeric(geometry.id))
             );
+            const features = countries.filter((feature) =>
+              codes.has(normalizeNumeric(feature.id))
+            );
             const regionSubregions = subregions.filter(
               (subregion) => String(subregion.regionCode) === String(code)
             );
@@ -2145,7 +2162,7 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
               name,
               codes,
               subregions: regionSubregions,
-              geometry: safeMerge(geometries),
+              geometry: safeMerge(geometries, features),
             };
           }).filter((region) => region.geometry && region.subregions.length > 0);
 
