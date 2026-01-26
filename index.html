@@ -2274,22 +2274,19 @@ ZW,http://www.wikidata.org/entity/Q954,http://commons.wikimedia.org/wiki/Special
             if (!row.languages) {
               return [];
             }
-            const languageSet = new Set();
-            row.languages
+            const firstLanguage = row.languages
               .split(",")
               .map((entry) => entry.trim())
-              .filter(Boolean)
-              .forEach((entry) => {
-                const baseCode = entry.split("-")[0]?.trim().toLowerCase();
-                if (!baseCode) {
-                  return;
-                }
-                const languageName = languageNameByCode.get(baseCode);
-                if (languageName) {
-                  languageSet.add(languageName);
-                }
-              });
-            return Array.from(languageSet);
+              .find(Boolean);
+            if (!firstLanguage) {
+              return [];
+            }
+            const baseCode = firstLanguage.split("-")[0]?.trim().toLowerCase();
+            if (!baseCode) {
+              return [];
+            }
+            const languageName = languageNameByCode.get(baseCode);
+            return languageName ? [languageName] : [];
           }
 
           countryCodes.forEach((row) => {
